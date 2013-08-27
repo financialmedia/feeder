@@ -1,0 +1,22 @@
+{
+    "name": "fm/feeder",
+    "type": "project",
+    "description": "",
+    "keywords": ["feed"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Peter Kruithof",
+            "email": "peter@financial-media.nl"
+        }
+    ],
+    "require": {
+        "php": ">=5.5.0",
+        "symfony/event-dispatcher": "dev-master",
+        "symfony/http-foundation": "dev-master",
+        "ext-mbstring": "*"
+    },
+    "autoload": {
+        "psr-0": { "FM\\Feeder": "src/" }
+    }
+}
