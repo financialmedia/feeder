@@ -3,7 +3,6 @@
 namespace FM\Feeder\Transport;
 
 use Symfony\Component\EventDispatcher\EventDispatcher;
-
 use FM\Feeder\FeedEvents;
 use FM\Feeder\Event\DownloadEvent;
 use FM\Feeder\Exception\TransportException;
@@ -16,6 +15,14 @@ abstract class AbstractTransport implements Transport
      * @var string
      */
     private $destination;
+
+    /**
+     * Directory where transport will download to. The file name is generated if
+     * this is used.
+     *
+     * @var string
+     */
+    protected $destinationDir;
 
     protected $connection;
     protected $downloaded;
@@ -78,9 +85,27 @@ abstract class AbstractTransport implements Transport
         return $this->destination;
     }
 
+    public function setDestinationDir($destinationDir)
+    {
+        if ($this->destination) {
+            throw new \LogicException(
+                'Destination is already set and is immutable. If you want to
+                change the destination directory, you can clone this transport
+                or create a new one'
+            );
+        }
+
+        $this->destinationDir = $destinationDir;
+    }
+
+    public function getDestinationDir()
+    {
+        return $this->destinationDir ?: sys_get_temp_dir();
+    }
+
     public function getDefaultDestination()
     {
-        return sprintf('%s/%s', sys_get_temp_dir(), $this->connection->getHash());
+        return sprintf('%s/%s', rtrim($this->getDestinationDir(), '/'), $this->connection->getHash());
     }
 
     public function getFile()
