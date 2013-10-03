@@ -3,6 +3,7 @@
 namespace FM\Feeder\Item\Transformer;
 
 use Symfony\Component\HttpFoundation\ParameterBag;
+use FM\Feeder\Exception\TransformationFailedException;
 
 class FieldValueTransformer implements TransformerInterface
 {
@@ -25,7 +26,22 @@ class FieldValueTransformer implements TransformerInterface
         }
 
         $value = $item->get($this->field);
-        $newValue = $this->transformer->transform($value, $this->field, $item);
+
+        try {
+            $newValue = $this->transformer->transform($value, $this->field, $item);
+        } catch (TransformationFailedException $e) {
+            throw new TransformationFailedException(
+                sprintf(
+                    'Transforming "%s" using "%s" failed with message: %s.',
+                    $this->field,
+                    get_class($this->transformer),
+                    $e->getMessage()
+                ),
+                null,
+                $e
+            );
+        }
+
         $item->set($this->field, $newValue);
     }
 }

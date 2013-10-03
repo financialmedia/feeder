@@ -68,7 +68,6 @@ class LocalizedStringToDateTimeTransformer extends DateTimeTransformer
      * Transforms a localized date string/array into a normalized date.
      *
      * @return \DateTime                     Normalized date
-     * @throws UnexpectedTypeException       if the given value is not a string,
      * @throws TransformationFailedException if the date could not be parsed or
      *                                       if the input timezone is not supported
      */

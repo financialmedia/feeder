@@ -12,5 +12,7 @@ class NodeToStringTransformer implements DataTransformer
         if (is_array($value) && array_key_exists('#', $value)) {
             return $value['#'];
         }
+
+        return $value;
     }
 }

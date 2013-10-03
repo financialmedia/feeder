@@ -46,6 +46,11 @@ class StringToBooleanTransformer implements DataTransformer
 
     public function transform($value, $key, ParameterBag $item)
     {
+        // only transform when we have something to transform
+        if (is_null($value)) {
+            return $value;
+        }
+
         if (is_bool($value)) {
             return $value;
         }
