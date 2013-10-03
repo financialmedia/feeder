@@ -21,12 +21,12 @@ abstract class AbstractTransport implements Transport
     protected $downloaded;
     protected $eventDispatcher;
 
-    public function __construct(Connection $conn, $destination = null)
+    public function __construct(Connection $conn, $destination = null, EventDispatcher $dispatcher = null)
     {
         $this->connection = $conn;
         $this->destination = $destination;
+        $this->eventDispatcher = $dispatcher ?: new EventDispatcher();
         $this->downloaded = false;
-        $this->eventDispatcher = new EventDispatcher();
     }
 
     public function __clone()
@@ -44,6 +44,11 @@ abstract class AbstractTransport implements Transport
     public function getConnection()
     {
         return $this->connection;
+    }
+
+    public function setEventDispatcher(EventDispatcher $dispatcher)
+    {
+        $this->eventDispatcher = $dispatcher;
     }
 
     public function getEventDispatcher()

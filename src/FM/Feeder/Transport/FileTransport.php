@@ -4,15 +4,6 @@ namespace FM\Feeder\Transport;
 
 class FileTransport extends AbstractTransport
 {
-    public function __construct(Connection $conn, $destination = null)
-    {
-        parent::__construct($conn, $destination);
-
-        if (!isset($this->connection['file']) || !is_readable($this->connection['file'])) {
-            throw new \InvalidArgumentException('No readable file given');
-        }
-    }
-
     public static function create($file)
     {
         return new self(new Connection(['file' => $file]));
@@ -35,6 +26,10 @@ class FileTransport extends AbstractTransport
 
     protected function doDownload($destination)
     {
+        if (!isset($this->connection['file']) || !is_readable($this->connection['file'])) {
+            throw new \InvalidArgumentException('No readable file given');
+        }
+
         // the destination may be the same as the source
         if (realpath($this->connection['file']) === realpath($destination)) {
             return;

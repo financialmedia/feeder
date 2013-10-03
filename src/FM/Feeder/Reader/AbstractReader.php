@@ -37,7 +37,7 @@ abstract class AbstractReader implements ReaderInterface
      */
     protected $initialized;
 
-    public function __construct($nextNode, ResourceCollection $resources = null)
+    public function __construct($nextNode, ResourceCollection $resources = null, EventDispatcher $dispatcher = null)
     {
         if ($resources === null) {
             $resources = new ResourceCollection();
@@ -45,7 +45,7 @@ abstract class AbstractReader implements ReaderInterface
 
         $this->resources = $resources;
         $this->nextNode  = $this->getNextNodeCallback($nextNode);
-        $this->eventDispatcher = new EventDispatcher();
+        $this->eventDispatcher = $dispatcher ?: new EventDispatcher();
     }
 
     public function current()
