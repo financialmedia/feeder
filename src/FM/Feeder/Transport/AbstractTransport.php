@@ -24,16 +24,24 @@ abstract class AbstractTransport implements Transport
      */
     protected $destinationDir;
 
+    /**
+     * The number of seconds that the transport may be cached
+     *
+     * @var integer
+     */
+    protected $maxAge;
+
     protected $connection;
     protected $downloaded;
     protected $eventDispatcher;
 
     public function __construct(Connection $conn, $destination = null, EventDispatcher $dispatcher = null)
     {
-        $this->connection = $conn;
-        $this->destination = $destination;
+        $this->connection      = $conn;
+        $this->destination     = $destination;
         $this->eventDispatcher = $dispatcher ?: new EventDispatcher();
-        $this->downloaded = false;
+        $this->downloaded      = false;
+        $this->maxAge          = 86400;
     }
 
     public function __clone()
@@ -61,6 +69,16 @@ abstract class AbstractTransport implements Transport
     public function getEventDispatcher()
     {
         return $this->eventDispatcher;
+    }
+
+    public function setMaxAge($seconds)
+    {
+        $this->maxAge = $seconds;
+    }
+
+    public function getMaxAge()
+    {
+        return $this->maxAge;
     }
 
     public function setDestination($destination)
@@ -110,7 +128,10 @@ abstract class AbstractTransport implements Transport
 
     public function getFile()
     {
-        return new \SplFileObject($this->download());
+        $maxAge = new \DateTime();
+        $maxAge->sub(new \DateInterval(sprintf('PT%dS', $this->maxAge)));
+
+        return new \SplFileObject($this->download($maxAge));
     }
 
     final public function download(\DateTime $maxAge = null)
