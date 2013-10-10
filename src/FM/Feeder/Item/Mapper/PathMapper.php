@@ -13,12 +13,21 @@ class PathMapper extends BasicMapper
     public function map(ParameterBag $item)
     {
         foreach ($this->mapping as $from => $to) {
-            if (null !== $value = $item->get($from, null, true)) {
-                $item->set($to, $value);
+            // get the value, but only if it's not null
+            if (null === $value = $item->get($from, null, true)) {
+                continue;
+            }
 
-                if ($to !== $from) {
-                    $item->remove($from);
-                }
+            // if value is empty, only set it when we don't already have this value
+            if (empty($value) && $item->has($to)) {
+                continue;
+            }
+
+            $item->set($to, $value);
+
+            // remove the original if the key is mapped to a different key
+            if ($to !== $from) {
+                $item->remove($from);
             }
         }
 
