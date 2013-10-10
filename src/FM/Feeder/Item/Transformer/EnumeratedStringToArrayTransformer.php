@@ -18,7 +18,12 @@ class EnumeratedStringToArrayTransformer implements DataTransformer
     public function __construct(array $delimiters = array())
     {
         $this->delimiters = !empty($delimiters) ? $delimiters : array(',');
-        $this->regex = sprintf('/[%s]+/', implode('|', array_map(function($delimiter) {
+        $this->regex = sprintf('/(%s)+/', implode('|', array_map(function($delimiter) {
+            if (mb_strlen($delimiter) > 1) {
+                // treat it as a word
+                return '\b' . preg_quote($delimiter, '/') . '\b';
+            }
+
             return preg_quote($delimiter, '/');
         }, $this->delimiters)));
     }
@@ -29,6 +34,6 @@ class EnumeratedStringToArrayTransformer implements DataTransformer
             throw new TransformationFailedException(sprintf('Expected a string to transform, got "%s" instead.', json_encode($value)));
         }
 
-        return preg_split($this->regex, $value, PREG_SPLIT_NO_EMPTY);
+        return array_map('trim', preg_split($this->regex, $value, null, PREG_SPLIT_NO_EMPTY));
     }
 }
