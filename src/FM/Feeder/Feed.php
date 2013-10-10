@@ -5,6 +5,7 @@ namespace FM\Feeder;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use FM\Feeder\Event\ItemNotModifiedEvent;
+use FM\Feeder\Event\ItemModificationEvent;
 use FM\Feeder\Exception\FilterException;
 use FM\Feeder\Exception\ModificationException;
 use FM\Feeder\Item\ModifierInterface;
@@ -88,7 +89,13 @@ class Feed
     {
         while ($item = $this->reader->read()) {
             try {
-                return $this->modify($item);
+                $event = new ItemModificationEvent($item);
+
+                $this->eventDispatcher->dispatch(FeedEvents::PRE_MODIFICATION, $event);
+                $item = $this->modify($item);
+                $this->eventDispatcher->dispatch(FeedEvents::POST_MODIFICATION, $event);
+
+                return $item;
             } catch (FilterException $e) {
                 $this->eventDispatcher->dispatch(FeedEvents::ITEM_FILTERED, new ItemNotModifiedEvent($item, $e->getMessage()));
             } catch (ModificationException $e) {

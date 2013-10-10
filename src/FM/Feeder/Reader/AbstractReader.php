@@ -7,6 +7,7 @@ use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\Serializer\Serializer;
 use FM\Feeder\FeedEvents;
 use FM\Feeder\Event\ResourceEvent;
+use FM\Feeder\Event\ResourceSerializeEvent;
 use FM\Feeder\Resource\Resource;
 use FM\Feeder\Resource\ResourceCollection;
 
@@ -104,7 +105,14 @@ abstract class AbstractReader implements ReaderInterface
 
         $this->next();
 
-        return $this->serialize($res);
+        $event = new ResourceSerializeEvent($res);
+        $this->eventDispatcher->dispatch(FeedEvents::RESOURCE_PRE_SERIALIZE, $event);
+
+        $res = $this->serialize($res);
+
+        $this->eventDispatcher->dispatch(FeedEvents::RESOURCE_POST_SERIALIZE, $event);
+
+        return $res;
     }
 
     public function setResources(ResourceCollection $resources)
