@@ -27,7 +27,7 @@ class XmlReader extends AbstractReader
      */
     protected $key;
 
-    public function __construct($nextNode, ResourceCollection $resources = null, EventDispatcher $dispatcher = null)
+    public function __construct($nextNode, $resources = null, EventDispatcher $dispatcher = null)
     {
         parent::__construct($nextNode, $resources, $dispatcher);
 

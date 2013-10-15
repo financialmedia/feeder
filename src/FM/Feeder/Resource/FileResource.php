@@ -15,6 +15,11 @@ class FileResource implements Resource
         $this->transport = $transport;
     }
 
+    public function getTransport()
+    {
+        return $this->transport;
+    }
+
     public function setFile(\SplFileObject $file)
     {
         $this->file = $file;

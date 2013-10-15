@@ -3,6 +3,7 @@
 namespace FM\Feeder\Transport;
 
 use Guzzle\Http\Client;
+use FM\Feeder\Exception\TransportException;
 
 class HttpTransport extends AbstractTransport
 {

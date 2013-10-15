@@ -38,10 +38,22 @@ abstract class AbstractReader implements ReaderInterface
      */
     protected $initialized;
 
-    public function __construct($nextNode, ResourceCollection $resources = null, EventDispatcher $dispatcher = null)
+    public function __construct($nextNode, $resources = null, EventDispatcher $dispatcher = null)
     {
+        if ($resources instanceof Resource) {
+            $resources = [$resources];
+        }
+
+        if (is_array($resources)) {
+            $resources = new ResourceCollection($resources);
+        }
+
         if ($resources === null) {
             $resources = new ResourceCollection();
+        }
+
+        if (!$resources instanceof ResourceCollection) {
+            throw new \InvalidArgumentException('Second argument must be a Resource object, an array of Resource objects, or null');
         }
 
         $this->resources = $resources;
@@ -125,7 +137,7 @@ abstract class AbstractReader implements ReaderInterface
 
     public function addResource(Resource $resource)
     {
-        $this->resources->append($resource);
+        $this->resources->push($resource);
     }
 
     public function getResources()
@@ -144,10 +156,13 @@ abstract class AbstractReader implements ReaderInterface
             $this->eventDispatcher->dispatch(FeedEvents::RESOURCE_END, new ResourceEvent($this->resource, $this->resources));
         }
 
-        if ($this->resource = $this->resources->getNextResource()) {
-            $this->eventDispatcher->dispatch(FeedEvents::RESOURCE_START, new ResourceEvent($this->resource, $this->resources));
-            $this->createReader($this->resource);
+        if ($this->resources->isEmpty()) {
+            return;
         }
+
+        $this->resource = $this->resources->shift();
+        $this->eventDispatcher->dispatch(FeedEvents::RESOURCE_START, new ResourceEvent($this->resource, $this->resources));
+        $this->createReader($this->resource);
     }
 
     protected function initialize()
@@ -156,7 +171,8 @@ abstract class AbstractReader implements ReaderInterface
             return;
         }
 
-        $this->createNextreader();
+        $this->resources->rewind();
+        $this->createNextReader();
 
         $this->initialized = true;
     }

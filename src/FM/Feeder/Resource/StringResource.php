@@ -15,6 +15,11 @@ class StringResource implements Resource
         $this->data = $data;
     }
 
+    public function getTransport()
+    {
+        return null;
+    }
+
     public function getFile()
     {
         $file = new TempFile();
