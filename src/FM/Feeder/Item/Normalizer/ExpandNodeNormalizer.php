@@ -18,15 +18,22 @@ class ExpandNodeNormalizer implements NormalizerInterface
     protected $removeCompound;
 
     /**
+     * @var array
+     */
+    protected $overwriteKeys;
+
+    /**
      * Constructor
      *
      * @param string  $field
      * @param boolean $removeCompound
+     * @param array   $overwriteKeys
      */
-    public function __construct($field, $removeCompound = false)
+    public function __construct($field, $removeCompound = false, array $overwriteKeys = array())
     {
         $this->field = $field;
         $this->removeCompound = $removeCompound;
+        $this->overwriteKeys = $overwriteKeys;
     }
 
     public function normalize(ParameterBag $item)
@@ -48,8 +55,15 @@ class ExpandNodeNormalizer implements NormalizerInterface
 
     protected function expand(array $value, ParameterBag $item)
     {
-        foreach ($value as $name => $val) {
-            $item->set($name, $val);
+        foreach ($value as $key => $val) {
+            // if key already exists, check if we may overwrite it
+            if ($item->has($key)) {
+                if (!in_array($key, $this->overwriteKeys)) {
+                    continue;
+                }
+            }
+
+            $item->set($key, $val);
         }
     }
 }
