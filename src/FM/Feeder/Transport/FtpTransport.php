@@ -40,12 +40,6 @@ class FtpTransport extends AbstractTransport
         return $this->connection['host'] . ':/' . $this->connection['file'];
     }
 
-    public function setFile($file)
-    {
-        $this->connection['file'] = $file;
-        $this->fileName = null;
-    }
-
     public function getMode()
     {
         return isset($this->connection['mode']) ? constant('FTP_' . strtoupper($this->connection['mode'])) : FTP_ASCII;
@@ -55,7 +49,7 @@ class FtpTransport extends AbstractTransport
     {
         if (is_null($this->ftpConnection)) {
             $conn = ftp_connect($this->connection['host']);
-            if (($conn == false) || (ftp_login($conn, $this->connection['user'], $this->connection['pass']) == false)) {
+            if (($conn === false) || (ftp_login($conn, $this->connection['user'], $this->connection['pass']) === false)) {
                 throw new TransportException(is_resource($conn) ? 'Could not login to FTP' : 'Could not make FTP connection');
             }
 
@@ -71,6 +65,12 @@ class FtpTransport extends AbstractTransport
         return $this->ftpConnection;
     }
 
+    public function setFilename($file)
+    {
+        $this->connection['file'] = $file;
+        $this->fileName = null;
+    }
+
     /**
      * Returns the file to download from the ftp. Handles globbing rules and
      * checks if the file is listed in the remote dir.
@@ -78,7 +78,7 @@ class FtpTransport extends AbstractTransport
      * @return string
      * @throws TransportException When remote file could not be found
      */
-    public function getFileName()
+    public function getFilename()
     {
         if (!$this->fileName) {
             $conn = $this->getFtpConnection();
@@ -128,7 +128,7 @@ class FtpTransport extends AbstractTransport
 
     public function getSize()
     {
-        return ftp_size($this->getFtpConnection(), $this->getFileName());
+        return ftp_size($this->getFtpConnection(), $this->getFilename());
     }
 
     protected function doDownload($destination)
@@ -142,17 +142,22 @@ class FtpTransport extends AbstractTransport
     protected function downloadToTmpFile()
     {
         $conn = $this->getFtpConnection();
-        $file = $this->getFileName();
+        $file = $this->getFilename();
 
         $tmpFile = sys_get_temp_dir() . DIRECTORY_SEPARATOR . basename($file);
         $fileSize = $this->getSize();
+
+        // TODO: tmp workaround until php 5.5.5 is release with a fix for the current segfault in ftp_nb_continue
+        if (!ftp_get($conn, $tmpFile, $file, $this->getMode())) {
+            throw new TransportException(sprintf('Error downloading feed to %s', $tmpFile));
+        }
+        return $tmpFile;
 
         $ret = ftp_nb_get($conn, $tmpFile, $file, $this->getMode());
         $currentBytes = 0;
         while ($ret === FTP_MOREDATA) {
             $ret = ftp_nb_continue($conn);
             clearstatcache();
-
             $bytes = filesize($tmpFile);
             $diff = $bytes - $currentBytes;
             $currentBytes = $bytes;
