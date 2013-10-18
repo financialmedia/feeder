@@ -8,7 +8,6 @@ use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
 use Symfony\Component\Serializer\Normalizer\CustomNormalizer;
 use FM\Feeder\Resource\Resource;
-use FM\Feeder\Resource\ResourceCollection;
 
 class XmlReader extends AbstractReader
 {

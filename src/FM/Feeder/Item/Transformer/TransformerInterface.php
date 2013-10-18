@@ -8,7 +8,7 @@ use FM\Feeder\Item\ModifierInterface;
 interface TransformerInterface extends ModifierInterface
 {
     /**
-     * @param  ParameterBag $item
+     * @param  ParameterBag                                       $item
      * @throws \FM\Feeder\Exception\TransformationFailedException
      */
     public function transform(ParameterBag $item);

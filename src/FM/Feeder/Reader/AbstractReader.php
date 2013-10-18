@@ -4,7 +4,6 @@ namespace FM\Feeder\Reader;
 
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\ParameterBag;
-use Symfony\Component\Serializer\Serializer;
 use FM\Feeder\FeedEvents;
 use FM\Feeder\Event\ResourceEvent;
 use FM\Feeder\Event\ResourceSerializeEvent;

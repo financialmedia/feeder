@@ -3,7 +3,6 @@
 namespace FM\Feeder\Resource\Transformer;
 
 use FM\Feeder\Resource\Resource;
-use FM\Feeder\Resource\FileResource;
 use FM\Feeder\Resource\ResourceCollection;
 use FM\Feeder\Transport\FileTransport;
 

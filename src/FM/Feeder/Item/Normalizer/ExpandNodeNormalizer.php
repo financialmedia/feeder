@@ -3,7 +3,6 @@
 namespace FM\Feeder\Item\Normalizer;
 
 use Symfony\Component\HttpFoundation\ParameterBag;
-use FM\Feeder\Exception\UnexpectedTypeException;
 
 class ExpandNodeNormalizer implements NormalizerInterface
 {

@@ -151,6 +151,7 @@ class FtpTransport extends AbstractTransport
         if (!ftp_get($conn, $tmpFile, $file, $this->getMode())) {
             throw new TransportException(sprintf('Error downloading feed to %s', $tmpFile));
         }
+
         return $tmpFile;
 
         $ret = ftp_nb_get($conn, $tmpFile, $file, $this->getMode());
