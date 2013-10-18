@@ -4,6 +4,7 @@ namespace FM\Feeder;
 
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\ParameterBag;
+use FM\Feeder\Event\FailedItemModificationEvent;
 use FM\Feeder\Event\ItemNotModifiedEvent;
 use FM\Feeder\Event\ItemModificationEvent;
 use FM\Feeder\Exception\FilterException;
@@ -26,6 +27,11 @@ class Feed
      * @var ModifierInterface[]
      */
     protected $modifiers = [];
+
+    /**
+     * @var array
+     */
+    protected $continues = [];
 
     /**
      * @param ReaderInterface $reader
@@ -66,10 +72,15 @@ class Feed
         $this->addModifier($transformer, $position);
     }
 
-    public function addModifier(ModifierInterface $modifier, $position = null)
+    /**
+     * @param ModifierInterface $modifier
+     * @param integer           $position
+     * @param boolean           $continueOnException
+     */
+    public function addModifier(ModifierInterface $modifier, $position = null, $continueOnException = false)
     {
         if (null === $position) {
-            $position = max(array_keys($this->modifiers));
+            $position = sizeof($this->modifiers) ? max(array_keys($this->modifiers)) : 1;
         }
 
         if (!is_numeric($position)) {
@@ -81,6 +92,7 @@ class Feed
         }
 
         $this->modifiers[$position] = $modifier;
+        $this->continues[$position] = $continueOnException;
 
         ksort($this->modifiers);
     }
@@ -109,20 +121,32 @@ class Feed
     protected function modify(ParameterBag $item)
     {
         foreach ($this->modifiers as $position => $modifier) {
-            if ($modifier instanceof FilterInterface) {
-                $modifier->filter($item);
-            }
+            try {
+                if ($modifier instanceof FilterInterface) {
+                    $modifier->filter($item);
+                }
 
-            if ($modifier instanceof NormalizerInterface) {
-                $modifier->normalize($item);
-            }
+                if ($modifier instanceof NormalizerInterface) {
+                    $modifier->normalize($item);
+                }
 
-            if ($modifier instanceof MapperInterface) {
-                $item = $modifier->map($item);
-            }
+                if ($modifier instanceof MapperInterface) {
+                    $item = $modifier->map($item);
+                }
 
-            if ($modifier instanceof TransformerInterface) {
-                $modifier->transform($item);
+                if ($modifier instanceof TransformerInterface) {
+                    $modifier->transform($item);
+                }
+            } catch (ModificationException $e) {
+                // notify listeners of this failure, give them the option to stop propagation
+                $event = new FailedItemModificationEvent($item, $modifier, $e);
+                $event->setContinue($this->continues[$position]);
+
+                $this->eventDispatcher->dispatch(FeedEvents::ITEM_MODIFICATION_FAIL, $event);
+
+                if (!$event->getContinue()) {
+                    throw $e;
+                }
             }
         }
 
