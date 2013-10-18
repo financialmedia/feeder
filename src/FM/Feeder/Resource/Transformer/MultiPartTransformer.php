@@ -26,40 +26,45 @@ class MultiPartTransformer implements ResourceTransformer
 
     public function transform(Resource $resource, ResourceCollection $collection)
     {
-        $file = $resource->getFile();
-
         // find files that match the part-regex
-        $files = $this->getPartFiles($file);
+        $files = $this->getPartFiles($resource);
 
         if (empty($files)) {
             // break up again
-            $this->breakup($file);
-            $files = $this->getPartFiles($file);
+            $files = $this->breakup($resource);
         }
 
-        // respect maxParts
-        if ($this->maxParts > 0) {
-            $files = array_splice($files, 0, $this->maxParts);
-        }
-
-        // append each part as resource
+        $resources = [];
         foreach ($files as $file) {
             $transport = FileTransport::create($file);
             $transport->setDestination($file);
+            $resources[] = new FileResource($transport);
 
-            $collection->append(new FileResource($transport));
+            if (($this->maxParts > 0) && (sizeof($resources) >= $this->maxParts)) {
+                break;
+            }
         }
+
+        $collection->unshiftAll($resources);
+
+        return $collection->shift();
     }
 
     public function needsTransforming(Resource $resource)
     {
-        return true;
+        return !$this->isPartFile($resource);
     }
 
-    protected function getPartFiles(\SplFileInfo $originalFile)
+    protected function isPartFile(Resource $resource)
+    {
+        return preg_match('/\.part(\d+)$/', $resource->getFile()->getBasename());
+    }
+
+    protected function getPartFiles(Resource $resource)
     {
         $files = [];
 
+        $originalFile = $resource->getFile();
         $regex = sprintf('/^%s\.part(\d+)$/', preg_quote($originalFile->getBasename(), '/'));
         $finder = new \DirectoryIterator($originalFile->getPath());
 
@@ -74,11 +79,14 @@ class MultiPartTransformer implements ResourceTransformer
         return $files;
     }
 
-    protected function breakup(\SplFileInfo $originalFile)
+    protected function breakup(Resource $resource)
     {
-        $partCount = 0;
+        $originalFile = $resource->getFile();
         $baseFile = $originalFile->getPathname();
 
+        $this->reader->setResources(new ResourceCollection([$resource]));
+
+        $partCount = 0;
         while ($this->reader->valid()) {
             if ($this->reader->key() % $this->size === 0) {
                 if ($this->reader->key() > 0) {
@@ -96,6 +104,8 @@ class MultiPartTransformer implements ResourceTransformer
         }
 
         $this->endPart();
+
+        return $this->getPartFiles($resource);
     }
 
     protected function startPart($file)
