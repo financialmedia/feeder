@@ -145,6 +145,11 @@ abstract class AbstractReader implements ReaderInterface
         return $this->resources;
     }
 
+    public function getCurrentResource()
+    {
+        return $this->resource;
+    }
+
     public function getEventDispatcher()
     {
         return $this->eventDispatcher;
