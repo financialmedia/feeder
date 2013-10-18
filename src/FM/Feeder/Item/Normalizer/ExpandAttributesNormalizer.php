@@ -18,12 +18,18 @@ class ExpandAttributesNormalizer implements NormalizerInterface
     protected $removeCompound;
 
     /**
+     * @var array
+     */
+    protected $overwriteKeys;
+
+    /**
      * Constructor
      *
      * @param string  $field
      * @param boolean $removeCompound
+     * @param array   $overwriteKeys
      */
-    public function __construct($field = null, $removeCompound = false)
+    public function __construct($field = null, $removeCompound = false, array $overwriteKeys = array())
     {
         if (!is_string($field) && !is_null($field)) {
             throw new UnexpectedTypeException($field, 'string or null');
@@ -31,6 +37,7 @@ class ExpandAttributesNormalizer implements NormalizerInterface
 
         $this->field = $field;
         $this->removeCompound = $removeCompound;
+        $this->overwriteKeys = $overwriteKeys;
     }
 
     public function normalize(ParameterBag $item)
@@ -59,7 +66,16 @@ class ExpandAttributesNormalizer implements NormalizerInterface
         foreach ($value as $name => $val) {
             // attributes are converted to @attribute
             if (substr($name, 0, 1) === '@') {
-                $item->set(ltrim($name, '@'), $val);
+                $name = ltrim($name, '@');
+
+                // if key already exists, check if we may overwrite it
+                if ($item->has($name)) {
+                    if (!in_array($name, $this->overwriteKeys)) {
+                        continue;
+                    }
+                }
+
+                $item->set($name, $val);
             }
         }
     }
