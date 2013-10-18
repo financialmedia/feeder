@@ -9,7 +9,7 @@ use Symfony\Component\HttpFoundation\ParameterBag;
  * empty() function. The difference is that this transformer will leave 0 and
  * false alone, as they could be valid feed values.
  */
-class EmptyValueToNullTransformer implements DataTransformer
+class EmptyValueToNullTransformer implements DataTransformerInterface
 {
     public function transform($value, $key, ParameterBag $item)
     {

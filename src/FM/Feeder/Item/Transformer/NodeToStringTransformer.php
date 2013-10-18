@@ -4,7 +4,7 @@ namespace FM\Feeder\Item\Transformer;
 
 use Symfony\Component\HttpFoundation\ParameterBag;
 
-class NodeToStringTransformer implements DataTransformer
+class NodeToStringTransformer implements DataTransformerInterface
 {
     public function transform($value, $key, ParameterBag $item)
     {

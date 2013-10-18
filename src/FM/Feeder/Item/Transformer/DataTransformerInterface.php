@@ -4,7 +4,7 @@ namespace FM\Feeder\Item\Transformer;
 
 use Symfony\Component\HttpFoundation\ParameterBag;
 
-interface DataTransformer
+interface DataTransformerInterface
 {
     /**
      * @param  mixed        $value

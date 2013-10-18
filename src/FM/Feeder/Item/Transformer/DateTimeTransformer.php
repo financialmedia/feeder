@@ -4,7 +4,7 @@ namespace FM\Feeder\Item\Transformer;
 
 use FM\Feeder\Exception\UnexpectedTypeException;
 
-abstract class DateTimeTransformer implements DataTransformer
+abstract class DateTimeTransformer implements DataTransformerInterface
 {
     protected static $formats = array(
         \IntlDateFormatter::NONE,

@@ -10,7 +10,7 @@ class FieldValueTransformer implements TransformerInterface
     protected $transformer;
     protected $field;
 
-    public function __construct(DataTransformer $transformer, $field)
+    public function __construct(DataTransformerInterface $transformer, $field)
     {
         $this->transformer = $transformer;
         $this->field = $field;

@@ -4,7 +4,7 @@ namespace FM\Feeder\Item\Transformer;
 
 use Symfony\Component\HttpFoundation\ParameterBag;
 
-class StringToBooleanTransformer implements DataTransformer
+class StringToBooleanTransformer implements DataTransformerInterface
 {
     protected $defaultTruthyValues = array(
         'true',

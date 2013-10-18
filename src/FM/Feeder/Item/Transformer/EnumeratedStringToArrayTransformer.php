@@ -7,7 +7,7 @@ use Symfony\Component\HttpFoundation\ParameterBag;
 /**
  * Transforms a string to an array, using one or more delimiters.
  */
-class EnumeratedStringToArrayTransformer implements DataTransformer
+class EnumeratedStringToArrayTransformer implements DataTransformerInterface
 {
     /**
      * @var array

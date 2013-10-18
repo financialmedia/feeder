@@ -5,7 +5,7 @@ namespace FM\Feeder\Item\Transformer;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use FM\Feeder\Exception\TransformationFailedException;
 
-class DateTimeToIso8601Transformer implements DataTransformer
+class DateTimeToIso8601Transformer implements DataTransformerInterface
 {
     public function transform($value, $key, ParameterBag $item)
     {

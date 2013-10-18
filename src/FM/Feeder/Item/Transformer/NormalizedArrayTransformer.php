@@ -5,7 +5,7 @@ namespace FM\Feeder\Item\Transformer;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use FM\Feeder\Exception\TransformationFailedException;
 
-class NormalizedArrayTransformer implements DataTransformer
+class NormalizedArrayTransformer implements DataTransformerInterface
 {
     protected $nestedArrays;
 

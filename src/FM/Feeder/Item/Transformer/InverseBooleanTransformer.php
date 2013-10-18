@@ -4,7 +4,7 @@ namespace FM\Feeder\Item\Transformer;
 
 use Symfony\Component\HttpFoundation\ParameterBag;
 
-class InverseBooleanTransformer implements DataTransformer
+class InverseBooleanTransformer implements DataTransformerInterface
 {
     public function transform($value, $key, ParameterBag $item)
     {

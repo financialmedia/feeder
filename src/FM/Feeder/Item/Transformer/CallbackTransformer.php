@@ -5,7 +5,7 @@ namespace FM\Feeder\Item\Transformer;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use FM\Feeder\Exception\UnexpectedTypeException;
 
-class CallbackTransformer implements DataTransformer
+class CallbackTransformer implements DataTransformerInterface
 {
     /**
      * @var callable

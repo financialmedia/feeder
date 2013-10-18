@@ -11,7 +11,7 @@ use FM\Feeder\Exception\TransformationFailedException;
  *
  * Copied from Symfony's Form component
  */
-class LocalizedStringToNumberTransformer implements DataTransformer
+class LocalizedStringToNumberTransformer implements DataTransformerInterface
 {
     /**
      * Number of fraction digits
