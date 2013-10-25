@@ -2,13 +2,35 @@
 
 namespace FM\Feeder\Transport;
 
+use Doctrine\Common\Cache\FilesystemCache;
 use Guzzle\Http\Client;
+use Guzzle\Cache\DoctrineCacheAdapter;
+use Guzzle\Plugin\Cache\CachePlugin;
+use Guzzle\Plugin\Cache\DefaultCacheStorage;
+use Guzzle\Http\Exception\BadResponseException;
 use FM\Feeder\Exception\TransportException;
 
 class HttpTransport extends AbstractTransport
 {
+    /**
+     * @var Client
+     */
     protected $client;
+
+    /**
+     * Response object for the HEAD call, containing the resource's info
+     *
+     * @var \Guzzle\Http\Message\Response
+     */
     protected $info;
+
+    /**
+     * Whether to use info (size, last modified, etc). Disable when making a
+     * large amount of requests, eg when using an API.
+     *
+     * @var boolean
+     */
+    protected $useInfo = true;
 
     public function __clone()
     {
@@ -38,6 +60,17 @@ class HttpTransport extends AbstractTransport
         return $this->getUrl();
     }
 
+    public function useInfo($use = null)
+    {
+        if (!is_null($use)) {
+            $this->useInfo = (boolean) $use;
+
+            return;
+        }
+
+        return $this->useInfo;
+    }
+
     public function getUrl()
     {
         if (!isset($this->connection['url'])) {
@@ -54,6 +87,17 @@ class HttpTransport extends AbstractTransport
 
     public function setClient(Client $client)
     {
+        $cachePlugin = new CachePlugin(array(
+            'storage' => new DefaultCacheStorage(
+                new DoctrineCacheAdapter(
+                    new FilesystemCache(sys_get_temp_dir())
+                )
+            )
+        ));
+
+        // Add the cache plugin to the client object
+        $client->addSubscriber($cachePlugin);
+
         $this->client = $client;
     }
 
@@ -64,10 +108,23 @@ class HttpTransport extends AbstractTransport
 
     public function getRequestInfo()
     {
-        if (!$this->info) {
-            $request = $this->getRequest('head');
-            $response = $request->send();
-            $this->info = $response;
+        if (!$this->useInfo()) {
+            return;
+        }
+
+        if (is_null($this->info)) {
+            try {
+                $request = $this->getRequest('head');
+                $response = $request->send();
+                $this->info = $response;
+            } catch (BadResponseException $e) {
+                // HEAD method is probably not supported
+                $this->info = $e->getResponse();
+            }
+        }
+
+        if (!$this->info->isSuccessful()) {
+            return;
         }
 
         return $this->info;
@@ -75,16 +132,14 @@ class HttpTransport extends AbstractTransport
 
     public function getLastModifiedDate()
     {
-        $response = $this->getRequestInfo();
-        if ($lastModifiedDate = (string) $response->getHeader('Last-Modified')) {
+        if (($response = $this->getRequestInfo()) && ($lastModifiedDate = $response->getLastModified())) {
             return new \DateTime($lastModifiedDate);
         }
     }
 
     public function getSize()
     {
-        $response = $this->getRequestInfo();
-        if ($size = (string) $response->getHeader('Content-Length')) {
+        if (($response = $this->getRequestInfo()) && ($size = $response->getContentLength())) {
             return $size;
         }
     }
@@ -130,5 +185,11 @@ class HttpTransport extends AbstractTransport
         }
 
         fclose($f);
+    }
+
+    protected function needsDownload($destination, \DateTime $maxAge = null)
+    {
+        // let Guzzle handle caching
+        return true;
     }
 }
