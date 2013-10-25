@@ -31,6 +31,11 @@ class ResourceCollection extends \SplQueue
         return $this->transform(parent::pop());
     }
 
+    public function dequeue()
+    {
+        return $this->transform(parent::dequeue());
+    }
+
     public function bottom()
     {
         return $this->transform(parent::bottom());
