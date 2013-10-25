@@ -6,14 +6,22 @@ use Symfony\Component\HttpFoundation\ParameterBag;
 
 class StringToBooleanTransformer implements DataTransformerInterface
 {
+    /**
+     * @var array
+     */
     protected $defaultTruthyValues = array(
         'true',
         'yes',
+        'on',
     );
 
+    /**
+     * @var array
+     */
     protected $defaultFalsyValues = array(
         'false',
         'no',
+        'off',
     );
 
     /**
@@ -26,6 +34,11 @@ class StringToBooleanTransformer implements DataTransformerInterface
      */
     protected $falsyValues;
 
+    /**
+     * @param array   $truthy
+     * @param array   $falsy
+     * @param boolean $merge
+     */
     public function __construct(array $truthy = array(), array $falsy = array(), $merge = true)
     {
         if (empty($truthy)) {
