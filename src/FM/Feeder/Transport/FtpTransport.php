@@ -147,13 +147,6 @@ class FtpTransport extends AbstractTransport
         $tmpFile = sys_get_temp_dir() . DIRECTORY_SEPARATOR . basename($file);
         $fileSize = $this->getSize();
 
-        // TODO: tmp workaround until php 5.5.5 is release with a fix for the current segfault in ftp_nb_continue
-        if (!ftp_get($conn, $tmpFile, $file, $this->getMode())) {
-            throw new TransportException(sprintf('Error downloading feed to %s', $tmpFile));
-        }
-
-        return $tmpFile;
-
         $ret = ftp_nb_get($conn, $tmpFile, $file, $this->getMode());
         $currentBytes = 0;
         while ($ret === FTP_MOREDATA) {

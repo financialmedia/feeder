@@ -24,6 +24,11 @@ class FileTransport extends AbstractTransport
         return filesize($this->connection['file']);
     }
 
+    public function getFilename()
+    {
+        return basename($this->connection['file']);
+    }
+
     protected function doDownload($destination)
     {
         if (!isset($this->connection['file']) || !is_readable($this->connection['file'])) {

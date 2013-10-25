@@ -80,7 +80,7 @@ class Feed
     public function addModifier(ModifierInterface $modifier, $position = null, $continueOnException = false)
     {
         if (null === $position) {
-            $position = sizeof($this->modifiers) ? max(array_keys($this->modifiers)) : 1;
+            $position = sizeof($this->modifiers) ? (max(array_keys($this->modifiers)) + 1) : 0;
         }
 
         if (!is_numeric($position)) {

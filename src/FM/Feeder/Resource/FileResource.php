@@ -31,7 +31,7 @@ class FileResource implements Resource
             try {
                 $this->file = $this->transport->getFile();
             } catch (\RuntimeException $e) {
-                throw new TransportException(sprintf('The path "%s" is invalid', $this->transport->getDestination()), null, $e);
+                throw new TransportException(sprintf('Could not open file "%s": %s', $this->transport->getDestination(), $e->getMessage()), null, $e);
             }
         }
 
