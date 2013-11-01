@@ -134,11 +134,6 @@ abstract class AbstractReader implements ReaderInterface
         $this->initialized = false;
     }
 
-    public function addResource(Resource $resource)
-    {
-        $this->resources->push($resource);
-    }
-
     public function getResources()
     {
         return $this->resources;
