@@ -45,6 +45,11 @@ class FtpTransport extends AbstractTransport
         return isset($this->connection['mode']) ? constant('FTP_' . strtoupper($this->connection['mode'])) : FTP_ASCII;
     }
 
+    public function getPasv()
+    {
+        return isset($this->connection['pasv']) ? (bool) $this->connection['pasv'] : null;
+    }
+
     public function getFtpConnection()
     {
         if (is_null($this->ftpConnection)) {
@@ -55,10 +60,8 @@ class FtpTransport extends AbstractTransport
 
             $this->ftpConnection = $conn;
 
-            $pasv = isset($this->connection['pasv']) ? (bool) $this->connection['pasv'] : null;
-
-            if (null !== $pasv) {
-                ftp_pasv($conn, $pasv);
+            if (null !== $pasv = $this->getPasv()) {
+                ftp_pasv($this->ftpConnection, $pasv);
             }
         }
 

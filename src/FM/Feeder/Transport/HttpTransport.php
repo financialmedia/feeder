@@ -85,6 +85,16 @@ class HttpTransport extends AbstractTransport
         $this->connection['url'] = $url;
     }
 
+    public function getUser()
+    {
+        return isset($this->connection['user']) ? $this->connection['user'] : null;
+    }
+
+    public function getPass()
+    {
+        return isset($this->connection['pass']) ? $this->connection['pass'] : null;
+    }
+
     public function setClient(Client $client)
     {
         $cachePlugin = new CachePlugin(array(
@@ -153,8 +163,8 @@ class HttpTransport extends AbstractTransport
         // perform HEAD request
         $request = $this->client->$method($this->getUrl(), array('User-Agent' => 'Feeder/1.0'));
 
-        if (isset($this->connection['user']) && isset($this->connection['pass'])) {
-            $request->setAuth($this->connection['user'], $this->connection['pass']);
+        if (($user = $this->getUser()) && ($pass = $this->getPass())) {
+            $request->setAuth($user, $pass);
         }
 
         return $request;
