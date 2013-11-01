@@ -111,6 +111,10 @@ class Feed
             } catch (FilterException $e) {
                 $this->eventDispatcher->dispatch(FeedEvents::ITEM_FILTERED, new ItemNotModifiedEvent($item, $e->getMessage()));
             } catch (ModificationException $e) {
+                if ($e->getPrevious()) {
+                    $e = $e->getPrevious();
+                }
+
                 $this->eventDispatcher->dispatch(FeedEvents::ITEM_MODIFICATION_FAILED, new ItemNotModifiedEvent($item, $e->getMessage()));
             }
         }

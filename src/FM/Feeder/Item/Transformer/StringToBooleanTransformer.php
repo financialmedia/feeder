@@ -3,6 +3,7 @@
 namespace FM\Feeder\Item\Transformer;
 
 use Symfony\Component\HttpFoundation\ParameterBag;
+use FM\Feeder\Exception\TransformationFailedException;
 
 class StringToBooleanTransformer implements DataTransformerInterface
 {
@@ -66,6 +67,10 @@ class StringToBooleanTransformer implements DataTransformerInterface
 
         if (is_bool($value)) {
             return $value;
+        }
+
+        if (!is_string($value)) {
+            throw new TransformationFailedException(sprintf('Expected a string to transform, got "%s" instead.', json_encode($value)));
         }
 
         if (in_array(mb_strtolower($value), $this->truthyValues)) {
