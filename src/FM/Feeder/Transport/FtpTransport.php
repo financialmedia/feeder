@@ -37,17 +37,52 @@ class FtpTransport extends AbstractTransport
 
     public function __toString()
     {
-        return $this->connection['host'] . ':/' . $this->connection['file'];
+        return $this->connection['host'] . ':/' . $this->getFilename();
+    }
+
+    public function getHost()
+    {
+        return $this->connection['host'];
+    }
+
+    public function getUser()
+    {
+        return isset($this->connection['user']) ? $this->connection['user'] : null;
+    }
+
+    public function getPass()
+    {
+        return isset($this->connection['pass']) ? $this->connection['pass'] : null;
     }
 
     public function getMode()
     {
-        return isset($this->connection['mode']) ? constant('FTP_' . strtoupper($this->connection['mode'])) : FTP_ASCII;
+        return isset($this->connection['mode']) ? $this->connection['mode'] : null;
+    }
+
+    public function setMode($mode)
+    {
+        $this->connection['mode'] = $mode;
     }
 
     public function getPasv()
     {
-        return isset($this->connection['pasv']) ? (bool) $this->connection['pasv'] : null;
+        return isset($this->connection['pasv']) ? (boolean) $this->connection['pasv'] : null;
+    }
+
+    public function setPasv($pasv)
+    {
+        $this->connection['pasv'] = (boolean) $pasv;
+    }
+
+    public function getPattern()
+    {
+        return isset($this->connection['pattern']) ? (boolean) $this->connection['pattern'] : null;
+    }
+
+    public function setPattern($pattern)
+    {
+        $this->connection['pattern'] = (boolean) $pattern;
     }
 
     public function getFtpConnection()
@@ -84,38 +119,18 @@ class FtpTransport extends AbstractTransport
     public function getFilename()
     {
         if (!$this->fileName) {
-            $conn = $this->getFtpConnection();
+            $file = $this->connection['file'];
+            $pattern = $this->getPattern();
 
-            $files = ftp_nlist($conn, '.');
+            // see if we need to use a pattern, this can also be the case with a wildcard
+            if (!$pattern && (false !== strpos($file, '*'))) {
+                $pattern = true;
 
-            if (false !== $pos = strpos($this->connection['file'], '*')) {
-
-                // wildcard supplied
-                list($start, $end) = explode('*', $this->connection['file']);
-
-                $match = false;
-                foreach ($files as $file) {
-                    if (preg_match('/^' . preg_quote($start, '/') . '.*' . preg_quote($end, '/') . '$/i', $file)) {
-                        $this->connection['file'] = $file;
-                        $match = true;
-                        break;
-                    }
-                }
-
-                if ($match === false) {
-                    throw new TransportException('Globbing, but no files matched');
-                }
+                list($start, $end) = explode('*', $file);
+                $file = '/^' . preg_quote($start, '/') . '.*' . preg_quote($end, '/') . '$/i';
             }
 
-            if (false === $files) {
-                throw new TransportException(sprintf('Error while listing files in directory ".". You might want to try passive mode using "pasv: true" in your feed.transport configuration.', $this->connection['file']));
-            }
-
-            if (!in_array($this->connection['file'], $files) && !in_array('./' . $this->connection['file'], $files)) {
-                throw new TransportException(sprintf('File "%s" was not found on FTP', $this->connection['file']));
-            }
-
-            $this->fileName = $this->connection['file'];
+            $this->fileName = $this->searchFile($file, $pattern);
         }
 
         return $this->fileName;
@@ -124,7 +139,7 @@ class FtpTransport extends AbstractTransport
     public function getLastModifiedDate()
     {
         // see if uploaded feed is newer
-        if ($ts = ftp_mdtm($this->getFtpConnection(), $this->connection['file'])) {
+        if ($ts = ftp_mdtm($this->getFtpConnection(), $this->getFilename())) {
             return new \DateTime('@' . $ts);
         }
     }
@@ -132,6 +147,39 @@ class FtpTransport extends AbstractTransport
     public function getSize()
     {
         return ftp_size($this->getFtpConnection(), $this->getFilename());
+    }
+
+    /**
+     * @param  string  $name
+     * @param  boolean $pattern
+     * @return string
+     */
+    protected function searchFile($name, $pattern = false)
+    {
+        $conn = $this->getFtpConnection();
+        $files = ftp_nlist($conn, '.');
+
+        if (false === $files) {
+            throw new TransportException('Error listing files from directory ".". You might want to try passive mode using "pasv: true" in your transport configuration.');
+        }
+
+        // no pattern, search for direct match
+        if (!$pattern) {
+            if (!in_array($name, $files) && !in_array('./' . $name, $files)) {
+                throw new TransportException(sprintf('File "%s" was not found on FTP', $name));
+            }
+
+            return $name;
+        }
+
+        // use pattern
+        foreach ($files as $file) {
+            if (preg_match($name, $file)) {
+                return $file;
+            }
+        }
+
+        throw new TransportException(sprintf('Pattern "%s" was not found on FTP', $name));
     }
 
     protected function doDownload($destination)
@@ -150,7 +198,9 @@ class FtpTransport extends AbstractTransport
         $tmpFile = sys_get_temp_dir() . DIRECTORY_SEPARATOR . basename($file);
         $fileSize = $this->getSize();
 
-        $ret = ftp_nb_get($conn, $tmpFile, $file, $this->getMode());
+        $mode = $this->getMode() ? constant('FTP_' . strtoupper($this->getMode())) : FTP_ASCII;
+
+        $ret = ftp_nb_get($conn, $tmpFile, $file, $mode);
         $currentBytes = 0;
         while ($ret === FTP_MOREDATA) {
             $ret = ftp_nb_continue($conn);
