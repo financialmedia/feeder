@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<phpunit colors="true">
+    <testsuites>
+        <testsuite name="Feeder test suite">
+            <directory suffix="Test.php">./src/FM/Feeder/Tests</directory>
+        </testsuite>
+    </testsuites>
+</phpunit>
