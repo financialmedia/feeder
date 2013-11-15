@@ -176,6 +176,14 @@ abstract class AbstractReader implements ReaderInterface
         $this->initialized = true;
     }
 
+    /**
+     * Serializes a read item into a ParameterBag
+     *
+     * @param  string $data
+     * @return ParameterBag
+     */
+    abstract protected function serialize($data);
+
     abstract protected function doKey();
     abstract protected function doCurrent();
     abstract protected function doNext();

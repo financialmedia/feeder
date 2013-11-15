@@ -5,6 +5,7 @@ namespace FM\Feeder\Resource;
 class StringResource implements Resource
 {
     protected $data;
+    protected $file;
 
     public function __construct($data)
     {
@@ -20,12 +21,23 @@ class StringResource implements Resource
         return null;
     }
 
+    public function setFile(\SplFileObject $file)
+    {
+        $this->file = $file;
+    }
+
     public function getFile()
     {
-        $file = new TempFile();
-        $file->fwrite($this->data);
-        $file->fseek(0);
+        if ($this->file === null) {
+            try {
+                $this->file = new TempFile();
+                $this->file->fwrite($this->data);
+                $this->file->fseek(0);
+            } catch (\RuntimeException $e) {
+                throw new TransportException($e->getMessage(), null, $e);
+            }
+        }
 
-        return $file;
+        return $this->file;
     }
 }

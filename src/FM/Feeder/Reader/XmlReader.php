@@ -8,6 +8,7 @@ use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
 use Symfony\Component\Serializer\Normalizer\CustomNormalizer;
 use FM\Feeder\Resource\Resource;
+use FM\Feeder\Exception\ReadException;
 
 class XmlReader extends AbstractReader
 {
@@ -43,7 +44,13 @@ class XmlReader extends AbstractReader
 
     protected function doCurrent()
     {
-        return $this->reader->readOuterXml();
+        $xml = $this->reader->readOuterXml();
+
+        if ($error = $this->getXmlError()) {
+            throw new ReadException($error);
+        }
+
+        return $xml;
     }
 
     protected function doNext()
@@ -54,7 +61,7 @@ class XmlReader extends AbstractReader
     protected function doRewind()
     {
         $this->reader->close();
-        $this->reader->open($this->resource->getFile()->getPathname(), 'UTF-8', LIBXML_NOENT | LIBXML_PARSEHUGE);
+        $this->reader->open($this->resource->getFile()->getPathname(), 'UTF-8', LIBXML_NOENT | LIBXML_PARSEHUGE | LIBXML_NOERROR | LIBXML_NOWARNING);
 
         $this->key = -1;
 
@@ -79,13 +86,32 @@ class XmlReader extends AbstractReader
         $nodeName = mb_strtolower($nextNode);
 
         return function(\XMLReader $reader) use ($nodeName) {
+            $found = false;
+
+            // remember what the previous value was
+            $errors = libxml_use_internal_errors(true);
             while ($reader->read()) {
+                // check for errors on each read operation
+                if ($error = $this->getXmlError()) {
+                    throw new ReadException($error);
+                }
+
+                // stop if we found our node
                 if (($reader->nodeType === \XMLReader::ELEMENT) && (mb_strtolower($reader->name) === $nodeName)) {
-                    return true;
+                    $found = true;
+                    break;
                 }
             }
 
-            return false;
+            // node not found, could be an error at the start
+            if ($error = $this->getXmlError()) {
+                throw new ReadException($error);
+            }
+
+            // set the previous value
+            libxml_use_internal_errors($errors);
+
+            return $found;
         };
     }
 
@@ -109,8 +135,26 @@ class XmlReader extends AbstractReader
         $this->doNext();
     }
 
-    protected function serialize($xml)
+    protected function serialize($data)
     {
-        return new ParameterBag((array) $this->serializer->decode($xml, 'xml'));
+        return new ParameterBag((array) $this->serializer->decode($data, 'xml'));
+    }
+
+    protected function getXmlError()
+    {
+        $errors = libxml_get_errors();
+        libxml_clear_errors();
+
+        // just return the first error
+        foreach ($errors as $error) {
+            return sprintf('[%s %s] %s (in %s - line %d, column %d)',
+                LIBXML_ERR_WARNING === $error->level ? 'WARNING' : 'ERROR',
+                $error->code,
+                trim($error->message),
+                $error->file ? $error->file : 'n/a',
+                $error->line,
+                $error->column
+            );
+        }
     }
 }
