@@ -13,4 +13,9 @@ interface Transport
      * @return \DateTime|null
      */
     public function getLastModifiedDate();
+
+    /**
+     * @return \SplFileObject
+     */
+    public function getFile();
 }
