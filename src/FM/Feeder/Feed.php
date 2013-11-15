@@ -142,6 +142,11 @@ class Feed
                     $modifier->transform($item);
                 }
             } catch (ModificationException $e) {
+                // filter exceptions don't get to continue
+                if ($e instanceof FilterException) {
+                    throw $e;
+                }
+
                 // notify listeners of this failure, give them the option to stop propagation
                 $event = new FailedItemModificationEvent($item, $modifier, $e);
                 $event->setContinue($this->continues[$position]);
