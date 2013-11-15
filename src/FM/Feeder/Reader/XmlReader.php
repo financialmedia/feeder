@@ -129,7 +129,7 @@ class XmlReader extends AbstractReader
     protected function createReader(Resource $resource)
     {
         $this->reader = new \XmlReader();
-        $this->reader->open($resource->getFile()->getPathname(), 'UTF-8', LIBXML_NOENT | LIBXML_PARSEHUGE);
+        $this->reader->open($resource->getFile()->getPathname(), 'UTF-8', LIBXML_NOENT | LIBXML_PARSEHUGE | LIBXML_NOERROR | LIBXML_NOWARNING);
 
         $this->key = -1;
         $this->doNext();
