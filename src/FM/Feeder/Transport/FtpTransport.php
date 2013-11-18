@@ -37,7 +37,13 @@ class FtpTransport extends AbstractTransport
 
     public function __toString()
     {
-        return $this->connection['host'] . ':/' . $this->getFilename();
+        try {
+            $file = $this->getFilename();
+        } catch (TransportException $e) {
+            $file = $this->connection['file'];
+        }
+
+        return $this->connection['host'] . ':/' . $file;
     }
 
     public function getHost()
