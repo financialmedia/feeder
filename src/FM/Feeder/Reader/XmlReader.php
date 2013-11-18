@@ -44,13 +44,7 @@ class XmlReader extends AbstractReader
 
     protected function doCurrent()
     {
-        $xml = $this->reader->readOuterXml();
-
-        if ($error = $this->getXmlError()) {
-            throw new ReadException($error);
-        }
-
-        return $xml;
+        return $this->readerOperation($this->reader, 'readOuterXml');
     }
 
     protected function doNext()
@@ -61,7 +55,7 @@ class XmlReader extends AbstractReader
     protected function doRewind()
     {
         $this->reader->close();
-        $this->reader->open($this->resource->getFile()->getPathname(), 'UTF-8', LIBXML_NOENT | LIBXML_PARSEHUGE | LIBXML_NOERROR | LIBXML_NOWARNING);
+        $this->open($this->resource->getFile()->getPathname());
 
         $this->key = -1;
 
@@ -86,32 +80,14 @@ class XmlReader extends AbstractReader
         $nodeName = mb_strtolower($nextNode);
 
         return function(\XMLReader $reader) use ($nodeName) {
-            $found = false;
-
-            // remember what the previous value was
-            $errors = libxml_use_internal_errors(true);
-            while ($reader->read()) {
-                // check for errors on each read operation
-                if ($error = $this->getXmlError()) {
-                    throw new ReadException($error);
-                }
-
+            while ($this->readerOperation($reader, 'read')) {
                 // stop if we found our node
                 if (($reader->nodeType === \XMLReader::ELEMENT) && (mb_strtolower($reader->name) === $nodeName)) {
-                    $found = true;
-                    break;
+                    return true;
                 }
             }
 
-            // node not found, could be an error at the start
-            if ($error = $this->getXmlError()) {
-                throw new ReadException($error);
-            }
-
-            // set the previous value
-            libxml_use_internal_errors($errors);
-
-            return $found;
+            return false;
         };
     }
 
@@ -129,10 +105,10 @@ class XmlReader extends AbstractReader
     protected function createReader(Resource $resource)
     {
         $this->reader = new \XmlReader();
-        $this->reader->open($resource->getFile()->getPathname(), 'UTF-8', LIBXML_NOENT | LIBXML_PARSEHUGE | LIBXML_NOERROR | LIBXML_NOWARNING);
+        $this->open($resource->getFile()->getPathname());
 
         $this->key = -1;
-        $this->doNext();
+        $this->next();
     }
 
     protected function serialize($data)
@@ -140,13 +116,19 @@ class XmlReader extends AbstractReader
         return new ParameterBag((array) $this->serializer->decode($data, 'xml'));
     }
 
-    protected function getXmlError()
+    protected function open($file, $options = null)
     {
-        $errors = libxml_get_errors();
-        libxml_clear_errors();
+        if (is_null($options)) {
+            $options = LIBXML_NOENT | LIBXML_NONET | LIBXML_COMPACT | LIBXML_PARSEHUGE | LIBXML_NOERROR | LIBXML_NOWARNING;
+        }
 
+        $this->reader->open($file, null, $options);
+    }
+
+    private function getXmlError()
+    {
         // just return the first error
-        foreach ($errors as $error) {
+        if ($error = libxml_get_last_error()) {
             return sprintf('[%s %s] %s (in %s - line %d, column %d)',
                 LIBXML_ERR_WARNING === $error->level ? 'WARNING' : 'ERROR',
                 $error->code,
@@ -156,5 +138,32 @@ class XmlReader extends AbstractReader
                 $error->column
             );
         }
+    }
+
+    private function readerOperation(\XmlReader $reader, $method)
+    {
+        // clear any previous errors
+        libxml_clear_errors();
+
+        // remember current settings
+        $errors = libxml_use_internal_errors(true);
+        $entities = libxml_disable_entity_loader(true);
+
+        // perform the operation
+        $retval = $reader->$method();
+
+        // get the last error, if any
+        $error = $this->getXmlError();
+
+        // reset everything, clear the error buffer again
+        libxml_clear_errors();
+        libxml_use_internal_errors($errors);
+        libxml_disable_entity_loader($entities);
+
+        if ($error) {
+            throw new ReadException($error);
+        }
+
+        return $retval;
     }
 }
