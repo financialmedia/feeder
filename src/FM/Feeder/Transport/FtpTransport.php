@@ -185,9 +185,14 @@ class FtpTransport extends AbstractTransport
             throw new TransportException($msg);
         }
 
+        // strip cwd off the files
+        $files = array_map(function($file) use ($cwd) {
+            return preg_replace(sprintf('/^%s/', preg_quote($cwd, '/')), '', $file);
+        }, $files);
+
         // no pattern, search for direct match
         if (!$pattern) {
-            if (!in_array($name, $files) && !in_array('./' . $name, $files)) {
+            if (!in_array($name, $files)) {
                 throw new TransportException(sprintf('File "%s" was not found on FTP', $name));
             }
 
