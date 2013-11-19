@@ -37,6 +37,18 @@ abstract class AbstractReader implements ReaderInterface
      */
     protected $initialized;
 
+    /**
+     * Constructor
+     *
+     * @param mixed           $nextNode   Callback to get the next node from the
+     *                                    current resource. Can be a callback or
+     *                                    a node name.
+     * @param mixed           $resources  Optional resource collection. Can be a
+     *                                    Resource, an array of Resource's, or a
+     *                                    ResourceCollection. When empty, a new
+     *                                    collection will be created.
+     * @param EventDispatcher $dispatcher Optional event dispatcher.
+     */
     public function __construct($nextNode, $resources = null, EventDispatcher $dispatcher = null)
     {
         if ($resources instanceof Resource) {
@@ -56,6 +68,7 @@ abstract class AbstractReader implements ReaderInterface
         }
 
         $this->resources = $resources;
+
         $this->nextNode  = $this->getNextNodeCallback($nextNode);
         $this->eventDispatcher = $dispatcher ?: new EventDispatcher();
     }
@@ -170,10 +183,11 @@ abstract class AbstractReader implements ReaderInterface
             return;
         }
 
+        // mark initialized first, to prevent recursive calls
+        $this->initialized = true;
+
         $this->resources->rewind();
         $this->createNextReader();
-
-        $this->initialized = true;
     }
 
     /**
