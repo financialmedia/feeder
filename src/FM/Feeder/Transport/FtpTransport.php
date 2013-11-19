@@ -11,28 +11,34 @@ class FtpTransport extends AbstractTransport
     protected $ftpConnection;
     protected $fileName;
 
-    public function __clone()
-    {
-        parent::__clone();
-
-        $this->ftpConnection = null;
-        $this->fileName = null;
-    }
-
     public static function create($host, $user = null, $pass = null, $file, array $options = array())
     {
         $conn = new Connection(array_merge(
             [
-                'host' => $host,
-                'user' => $user,
-                'pass' => $pass,
-                'file' => $file
+                'host'    => $host,
+                'user'    => $user,
+                'pass'    => $pass,
+                'file'    => $file,
+                'timeout' => 10
             ],
             $options
         ));
         $transport = new self($conn);
 
         return $transport;
+    }
+
+    public function __clone()
+    {
+        parent::__clone();
+
+        $this->closeFtpConnection();
+        $this->fileName = null;
+    }
+
+    public function __destruct()
+    {
+        $this->closeFtpConnection();
     }
 
     public function __toString()
@@ -101,6 +107,10 @@ class FtpTransport extends AbstractTransport
 
             $this->ftpConnection = $conn;
 
+            // set timeout
+            ftp_set_option($conn, FTP_TIMEOUT_SEC, $this->connection['timeout']);
+
+            // set passive mode if it's defined
             if (null !== $pasv = $this->getPasv()) {
                 ftp_pasv($this->ftpConnection, $pasv);
             }
@@ -163,10 +173,16 @@ class FtpTransport extends AbstractTransport
     protected function searchFile($name, $pattern = false)
     {
         $conn = $this->getFtpConnection();
-        $files = ftp_nlist($conn, '.');
+        $cwd = ftp_pwd($conn);
+        $files = ftp_nlist($conn, $cwd);
 
         if (false === $files) {
-            throw new TransportException('Error listing files from directory ".". You might want to try passive mode using "pasv: true" in your transport configuration.');
+            $msg = sprintf('Error listing files from directory "%s"', $cwd);
+            if (!$this->getPasv()) {
+                $msg .= '. You might want to try passive mode using "pasv: true" in your transport configuration.';
+            }
+
+            throw new TransportException($msg);
         }
 
         // no pattern, search for direct match
@@ -223,5 +239,13 @@ class FtpTransport extends AbstractTransport
         }
 
         return $tmpFile;
+    }
+
+    protected function closeFtpConnection()
+    {
+        if (is_resource($this->ftpConnection)) {
+            ftp_close($this->ftpConnection);
+            $this->ftpConnection = null;
+        }
     }
 }
