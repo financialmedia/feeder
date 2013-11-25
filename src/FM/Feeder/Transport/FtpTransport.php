@@ -250,7 +250,8 @@ class FtpTransport extends AbstractTransport
     {
         if (is_resource($this->ftpConnection)) {
             ftp_close($this->ftpConnection);
-            $this->ftpConnection = null;
         }
+
+        $this->ftpConnection = null;
     }
 }
