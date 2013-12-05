@@ -18,6 +18,11 @@ class XmlReader extends AbstractReader
     protected $reader;
 
     /**
+     * @var Closure
+     */
+    protected $nextNode;
+
+    /**
      * @var Symfony\Component\Serializer\Serializer
      */
     protected $serializer;
@@ -27,14 +32,43 @@ class XmlReader extends AbstractReader
      */
     protected $key;
 
-    public function __construct($nextNode, $resources = null, EventDispatcher $dispatcher = null)
+    public function __construct($resources = null, EventDispatcher $dispatcher = null)
     {
-        parent::__construct($nextNode, $resources, $dispatcher);
+        parent::__construct($resources, $dispatcher);
 
         $this->serializer = new Serializer(
             array(new CustomNormalizer()),
             array('xml' => new XmlEncoder())
         );
+    }
+
+    /**
+     * @param  mixed $nextNode Callback to get the next node from the current
+     *                         resource. Can be a callback or a node name.
+     * @return \Closure
+     */
+    public function setNodeCallback($nextNode)
+    {
+        if ($nextNode instanceof \Closure) {
+            return $this->nextNode = $nextNode;
+        }
+
+        if (!is_string($nextNode)) {
+            throw new \InvalidArgumentException('Expecting a string of callback for nextNode');
+        }
+
+        $nodeName = mb_strtolower($nextNode);
+
+        return $this->nextNode = function(\XMLReader $reader) use ($nodeName) {
+            while ($this->readerOperation($reader, 'read')) {
+                // stop if we found our node
+                if (($reader->nodeType === \XMLReader::ELEMENT) && (mb_strtolower($reader->name) === $nodeName)) {
+                    return true;
+                }
+            }
+
+            return false;
+        };
     }
 
     protected function doKey()
@@ -67,34 +101,10 @@ class XmlReader extends AbstractReader
         return (boolean) $this->doCurrent();
     }
 
-    protected function getNextNodeCallback($nextNode)
-    {
-        if ($nextNode instanceof \Closure) {
-            return $nextNode;
-        }
-
-        if (!is_string($nextNode)) {
-            throw new \InvalidArgumentException('Expecting a string of callback for nextNode');
-        }
-
-        $nodeName = mb_strtolower($nextNode);
-
-        return function(\XMLReader $reader) use ($nodeName) {
-            while ($this->readerOperation($reader, 'read')) {
-                // stop if we found our node
-                if (($reader->nodeType === \XMLReader::ELEMENT) && (mb_strtolower($reader->name) === $nodeName)) {
-                    return true;
-                }
-            }
-
-            return false;
-        };
-    }
-
     protected function moveToNextNode(\XMLReader $reader)
     {
         if (!$this->nextNode instanceof \Closure) {
-            throw new \LogicException('No function set to get next node');
+            throw new \LogicException('No callback set to get next node');
         }
 
         $this->key++;

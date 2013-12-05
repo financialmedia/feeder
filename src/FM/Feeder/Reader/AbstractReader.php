@@ -23,11 +23,6 @@ abstract class AbstractReader implements ReaderInterface
     protected $resource;
 
     /**
-     * @var Closure
-     */
-    protected $nextNode;
-
-    /**
      * @var EventDispatcher
      */
     protected $eventDispatcher;
@@ -40,16 +35,13 @@ abstract class AbstractReader implements ReaderInterface
     /**
      * Constructor
      *
-     * @param mixed           $nextNode   Callback to get the next node from the
-     *                                    current resource. Can be a callback or
-     *                                    a node name.
      * @param mixed           $resources  Optional resource collection. Can be a
      *                                    Resource, an array of Resource's, or a
      *                                    ResourceCollection. When empty, a new
      *                                    collection will be created.
      * @param EventDispatcher $dispatcher Optional event dispatcher.
      */
-    public function __construct($nextNode, $resources = null, EventDispatcher $dispatcher = null)
+    public function __construct($resources = null, EventDispatcher $dispatcher = null)
     {
         if ($resources instanceof Resource) {
             $resources = [$resources];
@@ -68,8 +60,6 @@ abstract class AbstractReader implements ReaderInterface
         }
 
         $this->resources = $resources;
-
-        $this->nextNode  = $this->getNextNodeCallback($nextNode);
         $this->eventDispatcher = $dispatcher ?: new EventDispatcher();
     }
 
@@ -198,10 +188,36 @@ abstract class AbstractReader implements ReaderInterface
      */
     abstract protected function serialize($data);
 
-    abstract protected function doKey();
-    abstract protected function doCurrent();
-    abstract protected function doNext();
-    abstract protected function doValid();
-    abstract protected function doRewind();
+    /**
+     * Creates a reader for a resource
+     *
+     * @param  Resource $resource
+     * @return void
+     */
     abstract protected function createReader(Resource $resource);
+
+    /**
+     * @see \Iterator::key()
+     */
+    abstract protected function doKey();
+
+    /**
+     * @see \Iterator::current()
+     */
+    abstract protected function doCurrent();
+
+    /**
+     * @see \Iterator::next()
+     */
+    abstract protected function doNext();
+
+    /**
+     * @see \Iterator::valid()
+     */
+    abstract protected function doValid();
+
+    /**
+     * @see \Iterator::rewind()
+     */
+    abstract protected function doRewind();
 }
