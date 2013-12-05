@@ -9,7 +9,9 @@ class XmlReaderTest extends \PHPUnit_Framework_TestCase
 {
     public function testCurrentXml()
     {
-        $reader = new XmlReader('bar', new StringResource('<foo><bar>baz</bar></foo>'));
+        $reader = new XmlReader(new StringResource('<foo><bar>baz</bar></foo>'));
+        $reader->setNodeCallback('bar');
+
         $this->assertSame('<bar>baz</bar>', $reader->current());
 
         return $reader;
@@ -17,7 +19,8 @@ class XmlReaderTest extends \PHPUnit_Framework_TestCase
 
     public function testReadXml()
     {
-        $reader = new XmlReader('test', new StringResource('<foo><test>foo</test><test>bar</test><test>baz</test></foo>'));
+        $reader = new XmlReader(new StringResource('<foo><test>foo</test><test>bar</test><test>baz</test></foo>'));
+        $reader->setNodeCallback('test');
 
         foreach (['foo', 'bar', 'baz'] as $test) {
             $bag = $reader->read();
@@ -35,7 +38,8 @@ class XmlReaderTest extends \PHPUnit_Framework_TestCase
      */
     public function testCurrentOnInvalidXml()
     {
-        $reader = new XmlReader('bar', new StringResource('<foo><baz/><bar></foo>'));
+        $reader = new XmlReader(new StringResource('<foo><baz/><bar></foo>'));
+        $reader->setNodeCallback('bar');
         $reader->current();
     }
 
@@ -45,7 +49,8 @@ class XmlReaderTest extends \PHPUnit_Framework_TestCase
      */
     public function testReadOnInvalidXml()
     {
-        $reader = new XmlReader('bar', new StringResource('<foo><bar/><bar></foo>'));
+        $reader = new XmlReader(new StringResource('<foo><bar/><bar></foo>'));
+        $reader->setNodeCallback('bar');
         $reader->read();
     }
 
@@ -55,7 +60,8 @@ class XmlReaderTest extends \PHPUnit_Framework_TestCase
      */
     public function testNextOnInvalidXml()
     {
-        $reader = new XmlReader('bar', new StringResource('<foo><bar></foo>'));
+        $reader = new XmlReader(new StringResource('<foo><bar></foo>'));
+        $reader->setNodeCallback('bar');
         $reader->next();
     }
 }
