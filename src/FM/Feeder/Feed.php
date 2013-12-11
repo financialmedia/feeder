@@ -3,6 +3,7 @@
 namespace FM\Feeder;
 
 use Symfony\Component\EventDispatcher\EventDispatcher;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use FM\Feeder\Event\FailedItemModificationEvent;
 use FM\Feeder\Event\ItemNotModifiedEvent;
@@ -22,6 +23,11 @@ class Feed
      * @var ReaderInterface
      */
     protected $reader;
+
+    /**
+     * @var EventDispatcherInterface
+     */
+    protected $eventDispatcher;
 
     /**
      * @var ModifierInterface[]

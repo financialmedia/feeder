@@ -3,6 +3,7 @@
 namespace FM\Feeder\Reader;
 
 use Symfony\Component\EventDispatcher\EventDispatcher;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use FM\Feeder\FeedEvents;
 use FM\Feeder\Event\ResourceEvent;
@@ -23,7 +24,7 @@ abstract class AbstractReader implements ReaderInterface
     protected $resource;
 
     /**
-     * @var EventDispatcher
+     * @var EventDispatcherInterface
      */
     protected $eventDispatcher;
 
@@ -35,13 +36,13 @@ abstract class AbstractReader implements ReaderInterface
     /**
      * Constructor
      *
-     * @param mixed           $resources  Optional resource collection. Can be a
-     *                                    Resource, an array of Resource's, or a
-     *                                    ResourceCollection. When empty, a new
-     *                                    collection will be created.
-     * @param EventDispatcher $dispatcher Optional event dispatcher.
+     * @param mixed                    $resources  Optional resource collection. Can be a
+     *                                             Resource, an array of Resource's, or a
+     *                                             ResourceCollection. When empty, a new
+     *                                             collection will be created.
+     * @param EventDispatcherInterface $dispatcher Optional event dispatcher.
      */
-    public function __construct($resources = null, EventDispatcher $dispatcher = null)
+    public function __construct($resources = null, EventDispatcherInterface $dispatcher = null)
     {
         if ($resources instanceof Resource) {
             $resources = [$resources];

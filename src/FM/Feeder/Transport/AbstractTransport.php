@@ -3,6 +3,7 @@
 namespace FM\Feeder\Transport;
 
 use Symfony\Component\EventDispatcher\EventDispatcher;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use FM\Feeder\FeedEvents;
 use FM\Feeder\Event\DownloadEvent;
 use FM\Feeder\Exception\TransportException;
@@ -31,11 +32,27 @@ abstract class AbstractTransport implements Transport
      */
     protected $maxAge;
 
+    /**
+     * @var Connection
+     */
     protected $connection;
+
+    /**
+     * @var boolean
+     */
     protected $downloaded;
+
+    /**
+     * @var EventDispatcherInterface
+     */
     protected $eventDispatcher;
 
-    public function __construct(Connection $conn, $destination = null, EventDispatcher $dispatcher = null)
+    /**
+     * @param Connection $conn
+     * @param string|null $destination
+     * @param EventDispatcherInterface $dispatcher
+     */
+    public function __construct(Connection $conn, $destination = null, EventDispatcherInterface $dispatcher = null)
     {
         $this->connection      = $conn;
         $this->destination     = $destination;
@@ -61,7 +78,7 @@ abstract class AbstractTransport implements Transport
         return $this->connection;
     }
 
-    public function setEventDispatcher(EventDispatcher $dispatcher)
+    public function setEventDispatcher(EventDispatcherInterface $dispatcher)
     {
         $this->eventDispatcher = $dispatcher;
     }

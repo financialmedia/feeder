@@ -3,6 +3,7 @@
 namespace FM\Feeder\Reader;
 
 use Symfony\Component\EventDispatcher\EventDispatcher;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
@@ -32,7 +33,7 @@ class XmlReader extends AbstractReader
      */
     protected $key;
 
-    public function __construct($resources = null, EventDispatcher $dispatcher = null)
+    public function __construct($resources = null, EventDispatcherInterface $dispatcher = null)
     {
         parent::__construct($resources, $dispatcher);
 
