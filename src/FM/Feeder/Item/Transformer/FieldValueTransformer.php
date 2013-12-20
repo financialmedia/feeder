@@ -7,9 +7,20 @@ use FM\Feeder\Exception\TransformationFailedException;
 
 class FieldValueTransformer implements TransformerInterface
 {
+    /**
+     * @var DataTransformerInterface
+     */
     protected $transformer;
+
+    /**
+     * @var string
+     */
     protected $field;
 
+    /**
+     * @param DataTransformerInterface $transformer
+     * @param string $field
+     */
     public function __construct(DataTransformerInterface $transformer, $field)
     {
         $this->transformer = $transformer;
@@ -30,6 +41,9 @@ class FieldValueTransformer implements TransformerInterface
         try {
             $newValue = $this->transformer->transform($value, $this->field, $item);
         } catch (TransformationFailedException $e) {
+            // set the value to null as we couldn't transform it
+            $item->set($this->field, null);
+
             throw new TransformationFailedException(
                 sprintf(
                     'Transforming "%s" using "%s" failed with message: %s.',
