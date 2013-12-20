@@ -42,10 +42,10 @@ class Feed
     /**
      * @param ReaderInterface $reader
      */
-    public function __construct(ReaderInterface $reader)
+    public function __construct(ReaderInterface $reader, EventDispatcherInterface $eventDispatcher = null)
     {
         $this->reader = $reader;
-        $this->eventDispatcher = new EventDispatcher();
+        $this->eventDispatcher = $eventDispatcher ?: new EventDispatcher();
     }
 
     public function getReader()
