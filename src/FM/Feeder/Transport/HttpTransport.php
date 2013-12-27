@@ -177,7 +177,7 @@ class HttpTransport extends AbstractTransport
         try {
             $response = $request->send();
         } catch (\Guzzle\Http\Exception\RequestException $e) {
-            throw new TransportException('Could not download feed', null, $e);
+            throw new TransportException(sprintf('Could not download feed (%s)', $e->getMessage()), null, $e);
         }
 
         if (!$response->isSuccessful()) {
