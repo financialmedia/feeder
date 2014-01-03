@@ -19,7 +19,7 @@ class FieldValueTransformer implements TransformerInterface
 
     /**
      * @param DataTransformerInterface $transformer
-     * @param string $field
+     * @param string                   $field
      */
     public function __construct(DataTransformerInterface $transformer, $field)
     {

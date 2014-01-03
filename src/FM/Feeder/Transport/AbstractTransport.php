@@ -48,8 +48,8 @@ abstract class AbstractTransport implements Transport
     protected $eventDispatcher;
 
     /**
-     * @param Connection $conn
-     * @param string|null $destination
+     * @param Connection               $conn
+     * @param string|null              $destination
      * @param EventDispatcherInterface $dispatcher
      */
     public function __construct(Connection $conn, $destination = null, EventDispatcherInterface $dispatcher = null)

@@ -14,12 +14,12 @@ use FM\Feeder\Resource\ResourceCollection;
 abstract class AbstractReader implements ReaderInterface
 {
     /**
-     * @var ResourceCollection
+     * @var \FM\Feeder\Resource\ResourceCollection
      */
     protected $resources;
 
     /**
-     * @var Resource
+     * @var \FM\Feeder\Resource\Resource
      */
     protected $resource;
 
@@ -36,11 +36,11 @@ abstract class AbstractReader implements ReaderInterface
     /**
      * Constructor
      *
-     * @param mixed                    $resources  Optional resource collection. Can be a
-     *                                             Resource, an array of Resource's, or a
-     *                                             ResourceCollection. When empty, a new
-     *                                             collection will be created.
-     * @param EventDispatcherInterface $dispatcher Optional event dispatcher.
+     * @param mixed $resources Optional resource collection. Can be a Resource, an array of
+     *                                             Resource's, or a ResourceCollection. When empty, a new collection
+     *                                             will be created.
+     * @param  EventDispatcherInterface  $dispatcher Optional event dispatcher.
+     * @throws \InvalidArgumentException
      */
     public function __construct($resources = null, EventDispatcherInterface $dispatcher = null)
     {
@@ -57,7 +57,9 @@ abstract class AbstractReader implements ReaderInterface
         }
 
         if (!$resources instanceof ResourceCollection) {
-            throw new \InvalidArgumentException('Second argument must be a Resource object, an array of Resource objects, or null');
+            throw new \InvalidArgumentException(
+                'Second argument must be a Resource object, an array of Resource objects, or null'
+            );
         }
 
         $this->resources = $resources;
@@ -116,20 +118,24 @@ abstract class AbstractReader implements ReaderInterface
             return null;
         }
 
-        $res = $this->current();
+        // keep a local copy of the resource; the next() call could change the cached one
+        $resource = $this->resource;
 
+        $item = $this->current();
         $this->next();
 
-        $event = new ResourceSerializeEvent($res);
+        // serialize the item
+        $event = new ResourceSerializeEvent($resource, $item);
         $this->eventDispatcher->dispatch(FeedEvents::RESOURCE_PRE_SERIALIZE, $event);
-
-        $res = $this->serialize($res);
-
+        $item = $this->serialize($item);
         $this->eventDispatcher->dispatch(FeedEvents::RESOURCE_POST_SERIALIZE, $event);
 
-        return $res;
+        return $item;
     }
 
+    /**
+     * @param ResourceCollection $resources
+     */
     public function setResources(ResourceCollection $resources)
     {
         $this->resources = $resources;
@@ -138,16 +144,25 @@ abstract class AbstractReader implements ReaderInterface
         $this->initialized = false;
     }
 
+    /**
+     * @return ResourceCollection
+     */
     public function getResources()
     {
         return $this->resources;
     }
 
+    /**
+     * @return \FM\Feeder\Resource\Resource
+     */
     public function getCurrentResource()
     {
         return $this->resource;
     }
 
+    /**
+     * @return EventDispatcherInterface
+     */
     public function getEventDispatcher()
     {
         return $this->eventDispatcher;
@@ -156,15 +171,27 @@ abstract class AbstractReader implements ReaderInterface
     protected function createNextReader()
     {
         if ($this->resource) {
-            $this->eventDispatcher->dispatch(FeedEvents::RESOURCE_END, new ResourceEvent($this->resource, $this->resources));
+            // end existing resource first
+            $this->eventDispatcher->dispatch(
+                FeedEvents::RESOURCE_END,
+                new ResourceEvent($this->resource, $this->resources)
+            );
         }
 
         if ($this->resources->isEmpty()) {
             return;
         }
 
+        // get the next resource
         $this->resource = $this->resources->shift();
-        $this->eventDispatcher->dispatch(FeedEvents::RESOURCE_START, new ResourceEvent($this->resource, $this->resources));
+
+        // dispatch start event
+        $this->eventDispatcher->dispatch(
+            FeedEvents::RESOURCE_START,
+            new ResourceEvent($this->resource, $this->resources)
+        );
+
+        // create a reader for this new resource
         $this->createReader($this->resource);
     }
 
@@ -184,7 +211,7 @@ abstract class AbstractReader implements ReaderInterface
     /**
      * Serializes a read item into a ParameterBag
      *
-     * @param  string $data
+     * @param  string       $data
      * @return ParameterBag
      */
     abstract protected function serialize($data);
@@ -192,7 +219,7 @@ abstract class AbstractReader implements ReaderInterface
     /**
      * Creates a reader for a resource
      *
-     * @param  Resource $resource
+     * @param  \FM\Feeder\Resource\Resource $resource
      * @return void
      */
     abstract protected function createReader(Resource $resource);

@@ -3,6 +3,7 @@
 namespace FM\Feeder\Reader;
 
 use Symfony\Component\HttpFoundation\ParameterBag;
+use FM\Feeder\Resource\ResourceCollection;
 
 interface ReaderInterface extends \Iterator
 {
@@ -12,4 +13,9 @@ interface ReaderInterface extends \Iterator
      * @return ParameterBag
      */
     public function read();
+
+    /**
+     * @param ResourceCollection $resources
+     */
+    public function setResources(ResourceCollection $resources);
 }

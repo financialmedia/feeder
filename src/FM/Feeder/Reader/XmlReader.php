@@ -2,7 +2,6 @@
 
 namespace FM\Feeder\Reader;
 
-use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\Serializer\Serializer;
@@ -19,12 +18,12 @@ class XmlReader extends AbstractReader
     protected $reader;
 
     /**
-     * @var Closure
+     * @var \Closure
      */
     protected $nextNode;
 
     /**
-     * @var Symfony\Component\Serializer\Serializer
+     * @var Serializer
      */
     protected $serializer;
 
@@ -44,9 +43,9 @@ class XmlReader extends AbstractReader
     }
 
     /**
-     * @param  mixed $nextNode Callback to get the next node from the current
-     *                         resource. Can be a callback or a node name.
+     * @param  mixed                     $nextNode Callback to get the next node from the current resource. Can be a callback or a node name.
      * @return \Closure
+     * @throws \InvalidArgumentException
      */
     public function setNodeCallback($nextNode)
     {

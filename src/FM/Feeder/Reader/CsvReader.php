@@ -3,13 +3,8 @@
 namespace FM\Feeder\Reader;
 
 use SplFileObject;
-use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\ParameterBag;
-use Symfony\Component\Serializer\Serializer;
-use Symfony\Component\Serializer\Encoder\XmlEncoder;
-use Symfony\Component\Serializer\Normalizer\CustomNormalizer;
 use FM\Feeder\Resource\Resource;
-use FM\Feeder\Exception\ReadException;
 
 class CsvReader extends AbstractReader
 {
@@ -59,21 +54,33 @@ class CsvReader extends AbstractReader
         $this->useFirstRow = (boolean) $bool;
     }
 
+    /**
+     * @param string $delimiter
+     */
     public function setDelimiter($delimiter = ',')
     {
         $this->delimiter = $delimiter;
     }
 
+    /**
+     * @param string $enclosure
+     */
     public function setEnclosure($enclosure = '"')
     {
         $this->enclosure = $enclosure;
     }
 
+    /**
+     * @param string $escape
+     */
     public function setEscape($escape = '\\')
     {
         $this->escape = $escape;
     }
 
+    /**
+     * @return integer
+     */
     public function getRowNumber()
     {
         return $this->key() + 1;
@@ -107,7 +114,7 @@ class CsvReader extends AbstractReader
 
     protected function doNext()
     {
-        return $this->fileObject->next();
+        $this->fileObject->next();
     }
 
     protected function doValid()
@@ -117,7 +124,7 @@ class CsvReader extends AbstractReader
 
     protected function doRewind()
     {
-        return $this->fileObject->rewind();
+        $this->fileObject->rewind();
     }
 
     protected function createReader(Resource $resource)

@@ -68,6 +68,7 @@ class MultiPartTransformer implements ResourceTransformer
         $regex = sprintf('/^%s\.part(\d+)$/', preg_quote($originalFile->getBasename(), '/'));
         $finder = new \DirectoryIterator($originalFile->getPath());
 
+        /** @var $file \SplFileInfo */
         foreach ($finder as $file) {
             if ($file->isFile() && preg_match($regex, $file->getBaseName(), $matches)) {
                 $files[(int) $matches[1]] = $file->getPathname();
