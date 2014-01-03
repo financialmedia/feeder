@@ -3,34 +3,37 @@
 namespace FM\CascoBundle\Tests\Import\Transformer;
 
 use FM\Feeder\Event\ResourceSerializeEvent;
+use FM\Feeder\Resource\StringResource;
 
 class ResourceSerializeEventTest extends \PHPUnit_Framework_TestCase
 {
-    protected static $resource = '<?xml version="1.0"?><foo><bar></bar></foo>';
+    protected static $item = '<?xml version="1.0"?><foo><bar></bar></foo>';
     protected static $serialized = ['foo' => 'bar'];
 
-    public function testReferences()
+    public function testChangeOriginalItemModifiesItem()
     {
-        // changing original input modifies resource
-        $resource = static::$resource;
-        $event = new ResourceSerializeEvent($resource);
-        $resource = static::$serialized;
-        $this->assertEquals(static::$serialized, $event->getResource());
+        $item = static::$item;
+        $event = new ResourceSerializeEvent(new StringResource($item), $item);
+        $item = static::$serialized;
+        $this->assertEquals(static::$serialized, $event->getItem());
+    }
 
-        // changing getter return value modifies resource
-        $resource = static::$resource;
-        $event = new ResourceSerializeEvent($resource);
-        $er = &$event->getResource();
-        $er = static::$serialized;
-        $this->assertEquals(static::$serialized, $event->getResource());
-        $this->assertEquals(static::$serialized, $resource);
+    public function testChangeReturnValueModifiesItem()
+    {
+        $item = static::$item;
+        $event = new ResourceSerializeEvent(new StringResource($item), $item);
+        $item = &$event->getItem();
+        $item = static::$serialized;
+        $this->assertEquals(static::$serialized, $event->getItem());
+    }
 
-        // set a new resource value modifies resource
-        $resource = static::$resource;
+    public function testSetItemModifiesItem()
+    {
+        $item = static::$item;
         $serialized = static::$serialized;
-        $event = new ResourceSerializeEvent($resource);
-        $event->setResource($serialized);
-        $this->assertEquals(static::$serialized, $event->getResource());
-        $this->assertEquals(static::$serialized, $resource);
+        $event = new ResourceSerializeEvent(new StringResource($item), $item);
+        $event->setItem($serialized);
+        $this->assertEquals(static::$serialized, $event->getItem());
+        $this->assertEquals(static::$serialized, $item);
     }
 }
