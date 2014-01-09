@@ -2,8 +2,23 @@
 
 namespace FM\Feeder\Transport;
 
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+
 class FileTransport extends AbstractTransport
 {
+    public function __construct(Connection $conn, $destination = null, EventDispatcherInterface $dispatcher = null)
+    {
+        parent::__construct($conn, $destination, $dispatcher);
+
+        if (!isset($this->connection['file'])) {
+            throw new \InvalidArgumentException('The "file" key is required in the Connection object');
+        }
+
+        if (!is_readable($this->connection['file'])) {
+            throw new \InvalidArgumentException(sprintf('Not readable: %s', $this->connection['file']));
+        }
+    }
+
     public static function create($file)
     {
         return new self(new Connection(['file' => $file]));
@@ -31,10 +46,6 @@ class FileTransport extends AbstractTransport
 
     protected function doDownload($destination)
     {
-        if (!isset($this->connection['file']) || !is_readable($this->connection['file'])) {
-            throw new \InvalidArgumentException('No readable file given');
-        }
-
         // the destination may be the same as the source
         if (realpath($this->connection['file']) === realpath($destination)) {
             return;
