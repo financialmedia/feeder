@@ -154,14 +154,13 @@ class HttpTransport extends AbstractTransport
         }
     }
 
-    protected function getRequest($method)
+    protected function getRequest($method = 'get')
     {
         if (!$this->client) {
             throw new \LogicException('No client set to use for downloading');
         }
 
-        // perform HEAD request
-        $request = $this->client->$method($this->getUrl(), array('User-Agent' => 'Feeder/1.0'));
+        $request = $this->client->$method($this->getUrl());
 
         if (($user = $this->getUser()) && ($pass = $this->getPass())) {
             $request->setAuth($user, $pass);
@@ -172,7 +171,7 @@ class HttpTransport extends AbstractTransport
 
     protected function doDownload($destination)
     {
-        $request = $this->getRequest('get');
+        $request = $this->getRequest();
 
         try {
             $response = $request->send();
