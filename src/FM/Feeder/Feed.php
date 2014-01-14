@@ -43,7 +43,8 @@ class Feed
     protected $continues = [];
 
     /**
-     * @param ReaderInterface $reader
+     * @param ReaderInterface          $reader
+     * @param EventDispatcherInterface $eventDispatcher
      */
     public function __construct(ReaderInterface $reader, EventDispatcherInterface $eventDispatcher = null)
     {
@@ -82,9 +83,10 @@ class Feed
     }
 
     /**
-     * @param ModifierInterface $modifier
-     * @param integer           $position
-     * @param boolean           $continueOnException
+     * @param  ModifierInterface         $modifier
+     * @param  integer                   $position
+     * @param  boolean                   $continueOnException
+     * @throws \InvalidArgumentException
      */
     public function addModifier(ModifierInterface $modifier, $position = null, $continueOnException = false)
     {
