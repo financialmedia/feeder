@@ -12,13 +12,13 @@
     ],
     "require": {
         "php": ">=5.5",
+        "ext-mbstring": "*",
         "symfony/event-dispatcher": "~2.1",
         "symfony/http-foundation": "~2.1",
-        "symfony/serializer": "~2.1",
-        "ext-mbstring": "*"
+        "symfony/serializer": "~2.1"
     },
     "require-dev": {
-        "phpunit/phpunit": "3.7.*"
+        "phpunit/phpunit": "~3.7"
     },
     "autoload": {
         "psr-0": { "FM\\Feeder": "src/" }
