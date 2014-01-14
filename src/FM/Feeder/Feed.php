@@ -8,13 +8,16 @@ use Symfony\Component\HttpFoundation\ParameterBag;
 use FM\Feeder\Event\FailedItemModificationEvent;
 use FM\Feeder\Event\ItemNotModifiedEvent;
 use FM\Feeder\Event\ItemModificationEvent;
+use FM\Feeder\Event\InvalidItemEvent;
 use FM\Feeder\Exception\FilterException;
 use FM\Feeder\Exception\ModificationException;
+use FM\Feeder\Exception\ValidationException;
 use FM\Feeder\Item\ModifierInterface;
 use FM\Feeder\Item\Filter\FilterInterface;
 use FM\Feeder\Item\Mapper\MapperInterface;
 use FM\Feeder\Item\Normalizer\NormalizerInterface;
 use FM\Feeder\Item\Transformer\TransformerInterface;
+use FM\Feeder\Item\Validator\ValidatorInterface;
 use FM\Feeder\Reader\ReaderInterface;
 
 class Feed
@@ -116,6 +119,8 @@ class Feed
                 return $item;
             } catch (FilterException $e) {
                 $this->eventDispatcher->dispatch(FeedEvents::ITEM_FILTERED, new ItemNotModifiedEvent($item, $e->getMessage()));
+            } catch (ValidationException $e) {
+                $this->eventDispatcher->dispatch(FeedEvents::ITEM_INVALID, new InvalidItemEvent($item, $e->getMessage()));
             } catch (ModificationException $e) {
                 if ($e->getPrevious()) {
                     $e = $e->getPrevious();
@@ -147,12 +152,17 @@ class Feed
                 if ($modifier instanceof TransformerInterface) {
                     $modifier->transform($item);
                 }
-            } catch (ModificationException $e) {
-                // filter exceptions don't get to continue
-                if ($e instanceof FilterException) {
-                    throw $e;
-                }
 
+                if ($modifier instanceof ValidatorInterface) {
+                    $modifier->validate($item);
+                }
+            } catch (FilterException $e) {
+                // filter exceptions don't get to continue
+                throw $e;
+            } catch (ValidationException $e) {
+                // validation exceptions don't get to continue
+                throw $e;
+            } catch (ModificationException $e) {
                 // notify listeners of this failure, give them the option to stop propagation
                 $event = new FailedItemModificationEvent($item, $modifier, $e);
                 $event->setContinue($this->continues[$position]);

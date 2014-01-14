@@ -18,6 +18,7 @@ final class FeedEvents
     const PRE_MODIFICATION         = 'feeder.item.pre_modification';
     const POST_MODIFICATION        = 'feeder.item.post_modification';
     const ITEM_FILTERED            = 'feeder.item.filtered';
+    const ITEM_INVALID             = 'feeder.item.invalid';
     const ITEM_MODIFICATION_FAIL   = 'feeder.item.modification_fail';
     const ITEM_MODIFICATION_FAILED = 'feeder.item.modification_failed';
 }
