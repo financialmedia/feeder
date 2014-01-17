@@ -5,13 +5,37 @@ namespace FM\Feeder\Transport;
 use FM\Feeder\FeedEvents;
 use FM\Feeder\Event\DownloadProgressEvent;
 use FM\Feeder\Exception\TransportException;
+use FM\Feeder\Transport\Matcher\FileMatcher;
+use FM\Feeder\Transport\Matcher\GlobMatcher;
+use FM\Feeder\Transport\Matcher\MatcherInterface;
+use FM\Feeder\Transport\Matcher\PatternMatcher;
 
 class FtpTransport extends AbstractTransport
 {
+    /**
+     * @var resource
+     */
     protected $ftpConnection;
+
+    /**
+     * @var string
+     */
     protected $fileName;
 
-    public static function create($host, $user = null, $pass = null, $file, array $options = array())
+    /**
+     * @var MatcherInterface
+     */
+    protected $fileMatcher;
+
+    /**
+     * @param  string       $host
+     * @param  string       $user
+     * @param  string       $pass
+     * @param  string       $file
+     * @param  array        $options
+     * @return FtpTransport
+     */
+    public static function create($host, $user = null, $pass = null, $file, array $options = [])
     {
         $conn = new Connection(array_merge(
             [
@@ -52,73 +76,81 @@ class FtpTransport extends AbstractTransport
         return $this->connection['host'] . ':/' . $file;
     }
 
+    /**
+     * @return string
+     */
     public function getHost()
     {
         return $this->connection['host'];
     }
 
+    /**
+     * @return string|null
+     */
     public function getUser()
     {
         return isset($this->connection['user']) ? $this->connection['user'] : null;
     }
 
+    /**
+     * @return string|null
+     */
     public function getPass()
     {
         return isset($this->connection['pass']) ? $this->connection['pass'] : null;
     }
 
+    /**
+     * @return string|null
+     */
     public function getMode()
     {
         return isset($this->connection['mode']) ? $this->connection['mode'] : null;
     }
 
+    /**
+     * @param string $mode
+     */
     public function setMode($mode)
     {
         $this->connection['mode'] = $mode;
     }
 
+    /**
+     * @return bool|null
+     */
     public function getPasv()
     {
         return isset($this->connection['pasv']) ? (boolean) $this->connection['pasv'] : null;
     }
 
+    /**
+     * @param boolean $pasv
+     */
     public function setPasv($pasv)
     {
         $this->connection['pasv'] = (boolean) $pasv;
     }
 
+    /**
+     * @return bool|null
+     */
     public function getPattern()
     {
         return isset($this->connection['pattern']) ? (boolean) $this->connection['pattern'] : null;
     }
 
+    /**
+     * @param boolean $pattern
+     */
     public function setPattern($pattern)
     {
         $this->connection['pattern'] = (boolean) $pattern;
     }
 
-    public function getFtpConnection()
-    {
-        if (is_null($this->ftpConnection)) {
-            $conn = ftp_connect($this->connection['host']);
-            if (($conn === false) || (ftp_login($conn, $this->connection['user'], $this->connection['pass']) === false)) {
-                throw new TransportException(is_resource($conn) ? 'Could not login to FTP' : 'Could not make FTP connection');
-            }
-
-            $this->ftpConnection = $conn;
-
-            // set timeout
-            ftp_set_option($conn, FTP_TIMEOUT_SEC, $this->connection['timeout']);
-
-            // set passive mode if it's defined
-            if (null !== $pasv = $this->getPasv()) {
-                ftp_pasv($this->ftpConnection, $pasv);
-            }
-        }
-
-        return $this->ftpConnection;
-    }
-
+    /**
+     * @param string $file
+     */
     public function setFilename($file)
     {
         $this->connection['file'] = $file;
@@ -135,42 +167,58 @@ class FtpTransport extends AbstractTransport
     public function getFilename()
     {
         if (!$this->fileName) {
-            $file = $this->connection['file'];
-            $pattern = $this->getPattern();
-
-            // see if we need to use a pattern, this can also be the case with a wildcard
-            if (!$pattern && (false !== strpos($file, '*'))) {
-                $pattern = true;
-
-                list($start, $end) = explode('*', $file);
-                $file = '/^' . preg_quote($start, '/') . '.*' . preg_quote($end, '/') . '$/i';
-            }
-
-            $this->fileName = $this->searchFile($file, $pattern);
+            $matcher = $this->getFileMatcher();
+            $this->fileName = $this->searchFile($matcher);
         }
 
         return $this->fileName;
     }
 
+    /**
+     * @return \DateTime|null
+     */
     public function getLastModifiedDate()
     {
         // see if uploaded feed is newer
-        if ($ts = ftp_mdtm($this->getFtpConnection(), $this->getFilename())) {
-            return new \DateTime('@' . $ts);
+        if ($time = ftp_mdtm($this->getFtpConnection(), $this->getFilename())) {
+            return new \DateTime('@' . $time);
         }
     }
 
+    /**
+     * @return integer
+     */
     public function getSize()
     {
         return ftp_size($this->getFtpConnection(), $this->getFilename());
     }
 
     /**
-     * @param  string  $name
-     * @param  boolean $pattern
+     * @param MatcherInterface $matcher
+     */
+    public function setFileMatcher(MatcherInterface $matcher)
+    {
+        $this->fileMatcher = $matcher;
+    }
+
+    /**
+     * @return MatcherInterface
+     */
+    public function getFileMatcher()
+    {
+        if (null === $this->fileMatcher) {
+            $this->fileMatcher = $this->createFileMatcher();
+        }
+
+        return $this->fileMatcher;
+    }
+
+    /**
+     * @param  MatcherInterface   $matcher
+     * @throws TransportException
      * @return string
      */
-    protected function searchFile($name, $pattern = false)
+    protected function searchFile(MatcherInterface $matcher)
     {
         $conn = $this->getFtpConnection();
         $cwd = ftp_pwd($conn);
@@ -186,29 +234,20 @@ class FtpTransport extends AbstractTransport
         }
 
         // strip cwd off the files
-        $files = array_map(function($file) use ($cwd) {
+        $files = array_map(function ($file) use ($cwd) {
             return preg_replace(sprintf('/^%s/', preg_quote($cwd, '/')), '', $file);
         }, $files);
 
-        // no pattern, search for direct match
-        if (!$pattern) {
-            if (!in_array($name, $files)) {
-                throw new TransportException(sprintf('File "%s" was not found on FTP', $name));
-            }
-
-            return $name;
+        if (null !== $file = $matcher->match($files)) {
+            return $file;
         }
 
-        // use pattern
-        foreach ($files as $file) {
-            if (preg_match($name, $file)) {
-                return $file;
-            }
-        }
-
-        throw new TransportException(sprintf('Pattern "%s" was not found on FTP', $name));
+        throw new TransportException(sprintf('File "%s" was not found on FTP', (string) $matcher));
     }
 
+    /**
+     * @param string $destination
+     */
     protected function doDownload($destination)
     {
         $tmpFile = $this->downloadToTmpFile();
@@ -217,6 +256,10 @@ class FtpTransport extends AbstractTransport
         rename($tmpFile, $destination);
     }
 
+    /**
+     * @return string
+     * @throws TransportException
+     */
     protected function downloadToTmpFile()
     {
         $conn = $this->getFtpConnection();
@@ -236,7 +279,10 @@ class FtpTransport extends AbstractTransport
             $diff = $bytes - $currentBytes;
             $currentBytes = $bytes;
 
-            $this->eventDispatcher->dispatch(FeedEvents::DOWNLOAD_PROGRESS, new DownloadProgressEvent($currentBytes, $diff, $fileSize));
+            $this->eventDispatcher->dispatch(
+                FeedEvents::DOWNLOAD_PROGRESS,
+                new DownloadProgressEvent($currentBytes, $diff, $fileSize)
+            );
         }
 
         if ($ret !== FTP_FINISHED) {
@@ -246,6 +292,56 @@ class FtpTransport extends AbstractTransport
         return $tmpFile;
     }
 
+    /**
+     * Returns shared ftp connection
+     *
+     * @return resource
+     */
+    protected function getFtpConnection()
+    {
+        if (is_null($this->ftpConnection)) {
+            $host = $this->connection['host'];
+            $user = $this->connection['user'];
+            $pass = $this->connection['pass'];
+
+            $this->ftpConnection = $this->connect($host, $user, $pass);
+
+            // set timeout
+            ftp_set_option($this->ftpConnection, FTP_TIMEOUT_SEC, $this->connection['timeout']);
+
+            // set passive mode if it's defined
+            if (null !== $pasv = $this->getPasv()) {
+                ftp_pasv($this->ftpConnection, $pasv);
+            }
+        }
+
+        return $this->ftpConnection;
+    }
+
+    /**
+     * Connects to ftp
+     *
+     * @param  string             $host
+     * @param  string             $user
+     * @param  string             $pass
+     * @return resource
+     * @throws TransportException
+     */
+    protected function connect($host, $user, $pass)
+    {
+        $conn = ftp_connect($host);
+        if (($conn === false) || (ftp_login($conn, $user, $pass) === false)) {
+            throw new TransportException(
+                is_resource($conn) ? 'Could not login to FTP' : 'Could not make FTP connection'
+            );
+        }
+
+        return $conn;
+    }
+
+    /**
+     * Closes shared ftp connection
+     */
     protected function closeFtpConnection()
     {
         if (is_resource($this->ftpConnection)) {
@@ -253,5 +349,27 @@ class FtpTransport extends AbstractTransport
         }
 
         $this->ftpConnection = null;
+    }
+
+    /**
+     * @return MatcherInterface
+     */
+    protected function createFileMatcher()
+    {
+        $file = $this->connection['file'];
+
+        // see if a pattern is used
+        if ($pattern = $this->getPattern()) {
+            return new PatternMatcher($file);
+        }
+
+
+        // see if globbing is used
+        if (false !== strpos($file, '*')) {
+            return new GlobMatcher($file);
+        }
+
+        // just a regular file matcher
+        return new FileMatcher($file);
     }
 }
