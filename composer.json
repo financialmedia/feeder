@@ -21,6 +21,8 @@
         "phpunit/phpunit": "~3.7"
     },
     "autoload": {
-        "psr-0": { "FM\\Feeder": "src/" }
+        "psr-0": {
+          "FM\\Feeder": "src/"
+        }
     }
 }

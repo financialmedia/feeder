@@ -5,4 +5,5 @@ if (!file_exists($file)) {
     throw new RuntimeException('Install dependencies to run test suite.');
 }
 
-$autoload = require_once $file;
+$loader = require_once $file;
+$loader->add('FM\Feeder\Tests', __DIR__);
