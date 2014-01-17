@@ -15,7 +15,7 @@ class TrimNormalizer implements NormalizerInterface
 
     protected function trimValues(array &$arr)
     {
-        foreach ($arr as $key => &$value) {
+        foreach ($arr as &$value) {
             if (is_string($value)) {
                 $value = trim($value);
             }
