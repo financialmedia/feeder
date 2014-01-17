@@ -18,4 +18,9 @@ interface ReaderInterface extends \Iterator
      * @param ResourceCollection $resources
      */
     public function setResources(ResourceCollection $resources);
+
+    /**
+     * @return ResourceCollection
+     */
+    public function getResources();
 }
