@@ -34,6 +34,8 @@ class RemoveUnitSeparatorsTransformer implements ResourceTransformer
         fclose($old);
         fclose($new);
 
+        unlink($oldFile);
+
         $transport = FileTransport::create($file);
         $transport->setDestinationDir($resource->getTransport()->getDestinationDir());
 
