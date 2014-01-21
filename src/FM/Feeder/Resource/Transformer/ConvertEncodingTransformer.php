@@ -2,9 +2,12 @@
 
 namespace FM\Feeder\Resource\Transformer;
 
+use FM\Feeder\Resource\FileResource;
 use FM\Feeder\Resource\Resource;
+use FM\Feeder\Resource\ResourceCollection;
+use FM\Feeder\Transport\FileTransport;
 
-class ConvertEncodingTransformer
+class ConvertEncodingTransformer implements ResourceTransformer
 {
     /**
      * @var string
@@ -29,7 +32,6 @@ class ConvertEncodingTransformer
     public function transform(Resource $resource, ResourceCollection $collection)
     {
         $file = $resource->getFile()->getPathname();
-        $resource->getFile()->
 
         // first, rename the original file
         $oldFile = $this->rename($file);
@@ -46,14 +48,19 @@ class ConvertEncodingTransformer
         unlink($oldFile);
 
         $transport = FileTransport::create($file);
-        $transport->setDestinationDir($resource->getTransport()->getDestinationDir());
 
-        return $transport;
+        if ($resource->getTransport()) {
+            $transport->setDestinationDir($resource->getTransport()->getDestinationDir());
+        }
+
+        return new FileResource($transport);
     }
 
     public function needsTransforming(Resource $resource)
     {
-        foreach ($resource->getFile()->fgets() as $line) {
+        $file = $resource->getFile();
+        while (!$file->eof()) {
+            $line = $file->fgets();
             if (!mb_check_encoding($line, $this->toEncoding)) {
                 return true;
             }
