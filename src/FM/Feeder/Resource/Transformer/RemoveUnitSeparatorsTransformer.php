@@ -2,6 +2,7 @@
 
 namespace FM\Feeder\Resource\Transformer;
 
+use FM\Feeder\Resource\FileResource;
 use FM\Feeder\Resource\Resource;
 use FM\Feeder\Resource\ResourceCollection;
 use FM\Feeder\Transport\FileTransport;
@@ -37,9 +38,12 @@ class RemoveUnitSeparatorsTransformer implements ResourceTransformer
         unlink($oldFile);
 
         $transport = FileTransport::create($file);
-        $transport->setDestinationDir($resource->getTransport()->getDestinationDir());
 
-        return $transport;
+        if ($resource->getTransport()) {
+            $transport->setDestinationDir($resource->getTransport()->getDestinationDir());
+        }
+
+        return new FileResource($transport);
     }
 
     public function needsTransforming(Resource $resource)
