@@ -58,6 +58,7 @@ class FtpTransport extends AbstractTransport
 
         $this->closeFtpConnection();
         $this->fileName = null;
+        $this->fileMatcher = null;
     }
 
     public function __destruct()
