@@ -73,6 +73,10 @@ class StringToBooleanTransformer implements DataTransformerInterface
             throw new TransformationFailedException(sprintf('Expected a string to transform, got "%s" instead.', json_encode($value)));
         }
 
+        if (trim($value) === '') {
+            return null;
+        }
+
         if (in_array(mb_strtolower($value), $this->truthyValues)) {
             return true;
         }
