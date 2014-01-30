@@ -7,6 +7,9 @@ use FM\Feeder\Item\Transformer\EmptyValueToNullTransformer;
 
 class EmptyValueToNullTransformerTest extends \PHPUnit_Framework_TestCase
 {
+    /**
+     * @var EmptyValueToNullTransformer
+     */
     protected $transformer;
 
     public function setUp()
