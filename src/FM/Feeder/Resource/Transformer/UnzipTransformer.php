@@ -16,6 +16,8 @@ class UnzipTransformer implements ResourceTransformer
     /**
      * @param string $files  The filename(s) in the zip file to return
      * @param string $target Target directory
+     *
+     * @throws \InvalidArgumentException
      */
     public function __construct($files, $target = null)
     {
@@ -24,7 +26,12 @@ class UnzipTransformer implements ResourceTransformer
         }
 
         if (!is_array($files)) {
-            throw new \InvalidArgumentException(sprintf('Expecting a file path or array of file paths as first argument, got "%s"', json_encode($files)));
+            throw new \InvalidArgumentException(
+                sprintf(
+                    'Expecting a file path or array of file paths as first argument, got "%s"',
+                    json_encode($files)
+                )
+            );
         }
 
         $this->files = $files;

@@ -5,6 +5,9 @@ namespace FM\Feeder\Transport;
 use Doctrine\Common\Cache\FilesystemCache;
 use Guzzle\Http\Client;
 use Guzzle\Cache\DoctrineCacheAdapter;
+use Guzzle\Http\Exception\RequestException;
+use Guzzle\Http\Message\RequestInterface;
+use Guzzle\Http\Message\Response;
 use Guzzle\Plugin\Cache\CachePlugin;
 use Guzzle\Plugin\Cache\DefaultCacheStorage;
 use Guzzle\Http\Exception\BadResponseException;
@@ -20,7 +23,7 @@ class HttpTransport extends AbstractTransport
     /**
      * Response object for the HEAD call, containing the resource's info
      *
-     * @var \Guzzle\Http\Message\Response
+     * @var Response
      */
     protected $info;
 
@@ -32,6 +35,9 @@ class HttpTransport extends AbstractTransport
      */
     protected $useInfo = true;
 
+    /**
+     * @inheritdoc
+     */
     public function __clone()
     {
         parent::__clone();
@@ -39,6 +45,13 @@ class HttpTransport extends AbstractTransport
         $this->info = null;
     }
 
+    /**
+     * @param string      $url
+     * @param string|null $user
+     * @param string|null $pass
+     *
+     * @return HttpTransport
+     */
     public static function create($url, $user = null, $pass = null)
     {
         $conn = new Connection([
@@ -55,22 +68,34 @@ class HttpTransport extends AbstractTransport
         return $transport;
     }
 
+    /**
+     * @inheritdoc
+     */
     public function __toString()
     {
         return $this->getUrl();
     }
 
+    /**
+     * @param boolean|null $use
+     *
+     * @return boolean
+     */
     public function useInfo($use = null)
     {
         if (!is_null($use)) {
             $this->useInfo = (boolean) $use;
 
-            return;
+            return null;
         }
 
         return $this->useInfo;
     }
 
+    /**
+     * @return string
+     * @throws \LogicException When url is not defined
+     */
     public function getUrl()
     {
         if (!isset($this->connection['url'])) {
@@ -80,21 +105,33 @@ class HttpTransport extends AbstractTransport
         return $this->connection['url'];
     }
 
+    /**
+     * @param string $url
+     */
     public function setUrl($url)
     {
         $this->connection['url'] = $url;
     }
 
+    /**
+     * @return string|null
+     */
     public function getUser()
     {
         return isset($this->connection['user']) ? $this->connection['user'] : null;
     }
 
+    /**
+     * @return string|null
+     */
     public function getPass()
     {
         return isset($this->connection['pass']) ? $this->connection['pass'] : null;
     }
 
+    /**
+     * @param Client $client
+     */
     public function setClient(Client $client)
     {
         $cachePlugin = new CachePlugin(array(
@@ -111,15 +148,21 @@ class HttpTransport extends AbstractTransport
         $this->client = $client;
     }
 
+    /**
+     * @return Client
+     */
     public function getClient()
     {
         return $this->client;
     }
 
+    /**
+     * @return Response|null
+     */
     public function getRequestInfo()
     {
         if (!$this->useInfo()) {
-            return;
+            return null;
         }
 
         if (is_null($this->info)) {
@@ -134,12 +177,15 @@ class HttpTransport extends AbstractTransport
         }
 
         if (!$this->info->isSuccessful()) {
-            return;
+            return null;
         }
 
         return $this->info;
     }
 
+    /**
+     * @inheritdoc
+     */
     public function getLastModifiedDate()
     {
         if (($response = $this->getRequestInfo()) && ($lastModifiedDate = $response->getLastModified())) {
@@ -147,13 +193,24 @@ class HttpTransport extends AbstractTransport
         }
     }
 
+    /**
+     * @return integer|null
+     */
     public function getSize()
     {
         if (($response = $this->getRequestInfo()) && ($size = $response->getContentLength())) {
             return $size;
         }
+
+        return null;
     }
 
+    /**
+     * @param string $method
+     *
+     * @return RequestInterface
+     * @throws \LogicException
+     */
     protected function getRequest($method = 'get')
     {
         if (!$this->client) {
@@ -169,18 +226,21 @@ class HttpTransport extends AbstractTransport
         return $request;
     }
 
+    /**
+     * @inheritdoc
+     */
     protected function doDownload($destination)
     {
         $request = $this->getRequest();
 
         try {
             $response = $request->send();
-        } catch (\Guzzle\Http\Exception\RequestException $e) {
-            throw new TransportException(sprintf('Could not download feed (%s)', $e->getMessage()), null, $e);
+        } catch (RequestException $e) {
+            throw new TransportException(sprintf('Could not download feed: %s', $e->getMessage()), null, $e);
         }
 
         if (!$response->isSuccessful()) {
-            throw new TransportException('Server responded with code ' . $this->response->getStatusCode());
+            throw new TransportException('Server responded with code ' . $response->getStatusCode());
         }
 
         // get body as a stream, this way we consume less memory
@@ -196,6 +256,9 @@ class HttpTransport extends AbstractTransport
         fclose($f);
     }
 
+    /**
+     * @inheritdoc
+     */
     protected function needsDownload($destination, \DateTime $maxAge = null)
     {
         // let Guzzle handle caching

@@ -26,7 +26,7 @@ class FileTransport extends AbstractTransport
 
     public function __toString()
     {
-        return $this->connection['file'];
+        return (string) $this->connection['file'];
     }
 
     public function getLastModifiedDate()

@@ -38,11 +38,6 @@ abstract class AbstractTransport implements Transport
     protected $connection;
 
     /**
-     * @var boolean
-     */
-    protected $downloaded;
-
-    /**
      * @var EventDispatcherInterface
      */
     protected $eventDispatcher;
@@ -57,14 +52,12 @@ abstract class AbstractTransport implements Transport
         $this->connection      = $conn;
         $this->destination     = $destination;
         $this->eventDispatcher = $dispatcher ?: new EventDispatcher();
-        $this->downloaded      = false;
         $this->maxAge          = 86400;
     }
 
     public function __clone()
     {
         $this->destination = false;
-        $this->downloaded = false;
         $this->connection = clone $this->connection;
     }
 
@@ -155,27 +148,22 @@ abstract class AbstractTransport implements Transport
     {
         $destination = $this->getDestination();
 
-        if ($this->downloaded == false) {
-            $event = new DownloadEvent($this);
-
-            // check if we need to download feed
-            if ($this->needsDownload($destination, $maxAge)) {
-                // make sure directory exists
-                $dir = dirname($destination);
-                if (!is_dir($dir)) {
-                    if (true !== @mkdir($dir, 0777, true)) {
-                        throw new TransportException(sprintf('Could not create feed dir "%s"', $dir));
-                    }
+        // check if we need to download feed
+        $event = new DownloadEvent($this);
+        if ($this->needsDownload($destination, $maxAge)) {
+            // make sure directory exists
+            $dir = dirname($destination);
+            if (!is_dir($dir)) {
+                if (true !== @mkdir($dir, 0777, true)) {
+                    throw new TransportException(sprintf('Could not create feed dir "%s"', $dir));
                 }
-
-                $this->eventDispatcher->dispatch(FeedEvents::PRE_DOWNLOAD, $event);
-                $this->doDownload($destination);
-                $this->eventDispatcher->dispatch(FeedEvents::POST_DOWNLOAD, $event);
-            } else {
-                $this->eventDispatcher->dispatch(FeedEvents::CACHED, $event);
             }
 
-            $this->downloaded = true;
+            $this->eventDispatcher->dispatch(FeedEvents::PRE_DOWNLOAD, $event);
+            $this->doDownload($destination);
+            $this->eventDispatcher->dispatch(FeedEvents::POST_DOWNLOAD, $event);
+        } else {
+            $this->eventDispatcher->dispatch(FeedEvents::CACHED, $event);
         }
 
         return $destination;

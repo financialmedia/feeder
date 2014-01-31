@@ -2,15 +2,20 @@
 
 namespace FM\Feeder\Resource;
 
+use FM\Feeder\Exception\TransportException;
+use FM\Feeder\Transport\Transport;
+
 interface Resource
 {
     /**
-     * @return \FM\Feeder\Transport\Transport
+     * @return Transport
      */
     public function getTransport();
 
     /**
      * @return \SplFileObject
+     *
+     * @throws TransportException
      */
     public function getFile();
 

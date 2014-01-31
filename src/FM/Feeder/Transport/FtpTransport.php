@@ -265,8 +265,8 @@ class FtpTransport extends AbstractTransport
     {
         $conn = $this->getFtpConnection();
         $file = $this->getFilename();
-
         $tmpFile = sys_get_temp_dir() . DIRECTORY_SEPARATOR . basename($file);
+
         $fileSize = $this->getSize();
 
         $mode = $this->getMode() ? constant('FTP_' . strtoupper($this->getMode())) : FTP_ASCII;

@@ -2,11 +2,25 @@
 
 namespace FM\Feeder\Resource;
 
+use FM\Feeder\Exception\TransportException;
+
 class StringResource implements Resource
 {
+    /**
+     * @var string
+     */
     protected $data;
+
+    /**
+     * @var
+     */
     protected $file;
 
+    /**
+     * @param string $data
+     *
+     * @throws \InvalidArgumentException When anything other than a string is passed
+     */
     public function __construct($data)
     {
         if (!is_string($data)) {
@@ -16,16 +30,25 @@ class StringResource implements Resource
         $this->data = $data;
     }
 
+    /**
+     * @inheritdoc
+     */
     public function getTransport()
     {
         return null;
     }
 
+    /**
+     * @inheritdoc
+     */
     public function setFile(\SplFileObject $file)
     {
         $this->file = $file;
     }
 
+    /**
+     * @inheritdoc
+     */
     public function getFile()
     {
         if ($this->file === null) {
