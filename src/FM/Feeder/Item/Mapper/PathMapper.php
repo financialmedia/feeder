@@ -13,13 +13,16 @@ class PathMapper extends BasicMapper
     public function map(ParameterBag $item)
     {
         foreach ($this->mapping as $from => $to) {
-            // get the value, but only if it's not null
-            if (null === $value = $item->get($from, null, true)) {
+            // use a special kind of null value to check, because we do want a
+            // `null` value if it's actually set, but we cannot use the has()
+            // method on deep paths, like foo[bar]
+            if ('__null__' === $value = $item->get($from, '__null__', true)) {
                 continue;
             }
 
-            // if value is empty, only set it when we don't already have this value
-            if (empty($value) && $item->has($to)) {
+            // if value is null, only set it when we don't already have this value
+            if ($item->has($to) && !$this->mayOverride($item->get($to), $value)) {
+                $item->remove($from);
                 continue;
             }
 
@@ -32,5 +35,20 @@ class PathMapper extends BasicMapper
         }
 
         return $item;
+    }
+
+    /**
+     * Decides whether a value may override a previous value
+     *
+     * @param mixed $previous
+     * @param mixed $value
+     *
+     * @return boolean
+     *
+     * @todo implement override strategy with options: keep and override
+     */
+    protected function mayOverride($previous, $value)
+    {
+        return !empty($value) || empty($previous);
     }
 }
