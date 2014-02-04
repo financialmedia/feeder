@@ -135,7 +135,7 @@ class Feed
         return null;
     }
 
-    protected function modify(ParameterBag $item)
+    protected function modify(ParameterBag &$item)
     {
         foreach ($this->modifiers as $position => $modifier) {
             try {
