@@ -32,7 +32,7 @@ class LocalizedStringToDateTimeTransformer extends DateTimeTransformer
      * @param integer $calendar       One of the \IntlDateFormatter calendar constants
      * @param string  $pattern        A pattern to pass to \IntlDateFormatter
      *
-     * @throws \FM\Feeder\Exception\UnexpectedTypeException
+     * @throws UnexpectedTypeException If a format is not supported or if a timezone is not a string
      */
     public function __construct(
         $locale = null,
