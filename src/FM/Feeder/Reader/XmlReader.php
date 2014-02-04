@@ -59,7 +59,7 @@ class XmlReader extends AbstractReader
 
         $nodeName = mb_strtolower($nextNode);
 
-        return $this->nextNode = function(\XMLReader $reader) use ($nodeName) {
+        return $this->nextNode = function (\XMLReader $reader) use ($nodeName) {
             while ($this->readerOperation($reader, 'read')) {
                 // stop if we found our node
                 if (($reader->nodeType === \XMLReader::ELEMENT) && (mb_strtolower($reader->name) === $nodeName)) {

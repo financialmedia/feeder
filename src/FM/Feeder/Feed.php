@@ -52,40 +52,63 @@ class Feed
         $this->eventDispatcher = $eventDispatcher ?: new EventDispatcher();
     }
 
+    /**
+     * @return ReaderInterface
+     */
     public function getReader()
     {
         return $this->reader;
     }
 
+    /**
+     * @return EventDispatcherInterface
+     */
     public function getEventDispatcher()
     {
         return $this->eventDispatcher;
     }
 
+    /**
+     * @param NormalizerInterface $normalizer
+     * @param integer|null        $position
+     */
     public function addNormalizer(NormalizerInterface $normalizer, $position = null)
     {
         $this->addModifier($normalizer, $position);
     }
 
+    /**
+     * @param FilterInterface $filter
+     * @param integer|null    $position
+     */
     public function addFilter(FilterInterface $filter, $position = null)
     {
         $this->addModifier($filter, $position);
     }
 
+    /**
+     * @param MapperInterface $mapper
+     * @param integer|null    $position
+     */
     public function addMapper(MapperInterface $mapper, $position = null)
     {
         $this->addModifier($mapper, $position);
     }
 
+    /**
+     * @param TransformerInterface $transformer
+     * @param integer|null         $position
+     */
     public function addTransformer(TransformerInterface $transformer, $position = null)
     {
         $this->addModifier($transformer, $position);
     }
 
     /**
-     * @param  ModifierInterface         $modifier
-     * @param  integer                   $position
-     * @param  boolean                   $continueOnException
+     * @param ModifierInterface $modifier
+     * @param integer           $position
+     * @param boolean           $continueOnException
+     *
      * @throws \InvalidArgumentException
      */
     public function addModifier(ModifierInterface $modifier, $position = null, $continueOnException = false)
@@ -108,33 +131,52 @@ class Feed
         ksort($this->modifiers);
     }
 
+    /**
+     * @return ParameterBag|null
+     */
     public function getNextItem()
     {
         while ($item = $this->reader->read()) {
             try {
-                $event = new ItemModificationEvent($item);
-
-                $this->eventDispatcher->dispatch(FeedEvents::PRE_MODIFICATION, $event);
+                $this->eventDispatcher->dispatch(FeedEvents::PRE_MODIFICATION, new ItemModificationEvent($item));
                 $item = $this->modify($item);
-                $this->eventDispatcher->dispatch(FeedEvents::POST_MODIFICATION, $event);
+                $this->eventDispatcher->dispatch(FeedEvents::POST_MODIFICATION, new ItemModificationEvent($item));
 
                 return $item;
             } catch (FilterException $e) {
-                $this->eventDispatcher->dispatch(FeedEvents::ITEM_FILTERED, new ItemNotModifiedEvent($item, $e->getMessage()));
+                $this->eventDispatcher->dispatch(
+                    FeedEvents::ITEM_FILTERED,
+                    new ItemNotModifiedEvent($item, $e->getMessage())
+                );
             } catch (ValidationException $e) {
-                $this->eventDispatcher->dispatch(FeedEvents::ITEM_INVALID, new InvalidItemEvent($item, $e->getMessage()));
+                $this->eventDispatcher->dispatch(
+                    FeedEvents::ITEM_INVALID,
+                    new InvalidItemEvent($item, $e->getMessage())
+                );
             } catch (ModificationException $e) {
                 if ($e->getPrevious()) {
                     $e = $e->getPrevious();
                 }
 
-                $this->eventDispatcher->dispatch(FeedEvents::ITEM_MODIFICATION_FAILED, new ItemNotModifiedEvent($item, $e->getMessage()));
+                $this->eventDispatcher->dispatch(
+                    FeedEvents::ITEM_MODIFICATION_FAILED,
+                    new ItemNotModifiedEvent($item, $e->getMessage())
+                );
             }
         }
 
         return null;
     }
 
+    /**
+     * @param ParameterBag $item
+     *
+     * @return ParameterBag
+     *
+     * @throws FilterException
+     * @throws ModificationException
+     * @throws ValidationException
+     */
     protected function modify(ParameterBag &$item)
     {
         foreach ($this->modifiers as $position => $modifier) {

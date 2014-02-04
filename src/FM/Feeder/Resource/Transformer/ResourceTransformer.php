@@ -8,7 +8,7 @@ use FM\Feeder\Resource\ResourceCollection;
 interface ResourceTransformer
 {
     /**
-     * @param \FM\Feeder\Resource\Resource  $resource
+     * @param \FM\Feeder\Resource\Resource           $resource
      * @param \FM\Feeder\Resource\ResourceCollection $collection
      *
      * @return \FM\Feeder\Resource\Resource

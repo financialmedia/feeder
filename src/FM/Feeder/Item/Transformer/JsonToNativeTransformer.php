@@ -1,6 +1,5 @@
 <?php
 
-
 namespace FM\Feeder\Item\Transformer;
 
 use Symfony\Component\HttpFoundation\ParameterBag;

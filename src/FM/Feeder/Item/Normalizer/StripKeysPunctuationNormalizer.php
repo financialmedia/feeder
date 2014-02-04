@@ -46,7 +46,7 @@ class StripKeysPunctuationNormalizer implements NormalizerInterface
             implode(
                 '',
                 array_map(
-                    function($value) {
+                    function ($value) {
                         return preg_quote($value, '/');
                     },
                     $this->punctuation

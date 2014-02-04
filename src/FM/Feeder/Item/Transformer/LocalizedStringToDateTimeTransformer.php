@@ -24,6 +24,7 @@ class LocalizedStringToDateTimeTransformer extends DateTimeTransformer
      *
      * @see DateTimeTransformer::formats for available format options
      *
+     * @param string  $locale
      * @param string  $inputTimezone  The name of the input timezone
      * @param string  $outputTimezone The name of the output timezone
      * @param integer $dateFormat     The date format
@@ -31,10 +32,17 @@ class LocalizedStringToDateTimeTransformer extends DateTimeTransformer
      * @param integer $calendar       One of the \IntlDateFormatter calendar constants
      * @param string  $pattern        A pattern to pass to \IntlDateFormatter
      *
-     * @throws UnexpectedTypeException If a format is not supported or if a timezone is not a string
+     * @throws \FM\Feeder\Exception\UnexpectedTypeException
      */
-    public function __construct($locale = null, $inputTimezone = null, $outputTimezone = null, $dateFormat = null, $timeFormat = null, $calendar = \IntlDateFormatter::GREGORIAN, $pattern = null)
-    {
+    public function __construct(
+        $locale = null,
+        $inputTimezone = null,
+        $outputTimezone = null,
+        $dateFormat = null,
+        $timeFormat = null,
+        $calendar = \IntlDateFormatter::GREGORIAN,
+        $pattern = null
+    ) {
         parent::__construct($inputTimezone, $outputTimezone);
 
         if (null === $locale) {
@@ -67,9 +75,13 @@ class LocalizedStringToDateTimeTransformer extends DateTimeTransformer
     /**
      * Transforms a localized date string/array into a normalized date.
      *
-     * @return \DateTime                     Normalized date
-     * @throws TransformationFailedException if the date could not be parsed or
-     *                                       if the input timezone is not supported
+     * @param mixed        $value
+     * @param string       $key
+     * @param ParameterBag $item
+     *
+     * @throws TransformationFailedException
+     *
+     * @return \DateTime Normalized date
      */
     public function transform($value, $key, ParameterBag $item)
     {
@@ -78,7 +90,9 @@ class LocalizedStringToDateTimeTransformer extends DateTimeTransformer
         }
 
         if (!is_string($value)) {
-            throw new TransformationFailedException(sprintf('Expected a string to transform, got "%s" instead.', json_encode($value)));
+            throw new TransformationFailedException(
+                sprintf('Expected a string to transform, got "%s" instead.', json_encode($value))
+            );
         }
 
         if ('' === $value) {

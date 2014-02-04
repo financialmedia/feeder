@@ -17,7 +17,7 @@ class EnumeratedStringToArrayTransformer implements DataTransformerInterface
     public function __construct(array $delimiters = array())
     {
         $this->delimiters = !empty($delimiters) ? $delimiters : array(',');
-        $this->regex = sprintf('/(%s)+/', implode('|', array_map(function($delimiter) {
+        $this->regex = sprintf('/(%s)+/', implode('|', array_map(function ($delimiter) {
             if (mb_strlen($delimiter) > 1) {
                 // treat it as a word
                 return '\b' . preg_quote($delimiter, '/') . '\b';
