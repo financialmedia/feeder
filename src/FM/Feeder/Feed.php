@@ -69,6 +69,14 @@ class Feed
     }
 
     /**
+     * @return ModifierInterface[]
+     */
+    public function getModifiers()
+    {
+        return $this->modifiers;
+    }
+
+    /**
      * @param NormalizerInterface $normalizer
      * @param integer|null        $position
      */
