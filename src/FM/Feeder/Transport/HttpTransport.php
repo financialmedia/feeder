@@ -21,6 +21,11 @@ class HttpTransport extends AbstractTransport
     protected $client;
 
     /**
+     * @var CachePlugin
+     */
+    protected $cache;
+
+    /**
      * Response object for the HEAD call, containing the resource's info
      *
      * @var Response
@@ -130,20 +135,29 @@ class HttpTransport extends AbstractTransport
     }
 
     /**
+     * @return CachePlugin
+     */
+    public function getCache()
+    {
+        if (null === $this->cache) {
+            $this->cache = new CachePlugin([
+                'storage' => new DefaultCacheStorage(
+                    new DoctrineCacheAdapter(new FilesystemCache(sys_get_temp_dir())),
+                    'feeder'
+                )
+            ]);
+        }
+
+        return $this->cache;
+    }
+
+    /**
      * @param Client $client
      */
     public function setClient(Client $client)
     {
-        $cachePlugin = new CachePlugin(array(
-            'storage' => new DefaultCacheStorage(
-                new DoctrineCacheAdapter(
-                    new FilesystemCache(sys_get_temp_dir())
-                )
-            )
-        ));
-
         // Add the cache plugin to the client object
-        $client->addSubscriber($cachePlugin);
+        $client->addSubscriber($this->getCache());
 
         $this->client = $client;
     }
@@ -203,6 +217,16 @@ class HttpTransport extends AbstractTransport
         }
 
         return null;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function purge()
+    {
+        parent::purge();
+
+        $this->getCache()->purge($this->getUrl());
     }
 
     /**

@@ -174,6 +174,21 @@ abstract class AbstractTransport implements Transport
         return 'Feeder/1.0';
     }
 
+    /**
+     * Purges a previously transported file, removing the destination and
+     * whatever cache the transport uses internally
+     *
+     * @return void
+     */
+    public function purge()
+    {
+        $destination = $this->getDestination();
+
+        if (is_file($destination)) {
+            unlink($destination);
+        }
+    }
+
     protected function needsDownload($destination, \DateTime $maxAge = null)
     {
         // download if file does not exist

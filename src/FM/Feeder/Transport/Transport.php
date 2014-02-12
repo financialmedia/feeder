@@ -30,4 +30,12 @@ interface Transport
      * @return EventDispatcherInterface
      */
     public function getEventDispatcher();
+
+    /**
+     * Purges a previously transported file, removing the destination and
+     * whatever cache the transport uses internally
+     *
+     * @return void
+     */
+    public function purge();
 }
