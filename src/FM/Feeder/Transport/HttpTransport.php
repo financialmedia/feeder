@@ -241,7 +241,9 @@ class HttpTransport extends AbstractTransport
             throw new \LogicException('No client set to use for downloading');
         }
 
+        /** @var RequestInterface $request */
         $request = $this->client->$method($this->getUrl());
+        $request->getParams()->set('cache.override_ttl', $this->maxAge ?: 3600);
 
         if (($user = $this->getUser()) && ($pass = $this->getPass())) {
             $request->setAuth($user, $pass);

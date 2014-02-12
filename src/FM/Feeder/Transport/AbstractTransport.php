@@ -55,42 +55,68 @@ abstract class AbstractTransport implements Transport
         $this->maxAge          = 86400;
     }
 
+    /**
+     * @inheritdoc
+     */
     public function __clone()
     {
         $this->destination = false;
         $this->connection = clone $this->connection;
     }
 
+    /**
+     * @inheritdoc
+     */
     public function __toString()
     {
         return $this->connection->__toString();
     }
 
+    /**
+     * @return Connection
+     */
     public function getConnection()
     {
         return $this->connection;
     }
 
+    /**
+     * @param EventDispatcherInterface $dispatcher
+     */
     public function setEventDispatcher(EventDispatcherInterface $dispatcher)
     {
         $this->eventDispatcher = $dispatcher;
     }
 
+    /**
+     * @inheritdoc
+     */
     public function getEventDispatcher()
     {
         return $this->eventDispatcher;
     }
 
+    /**
+     * @param integer $seconds
+     */
     public function setMaxAge($seconds)
     {
         $this->maxAge = $seconds;
     }
 
+    /**
+     * @return integer
+     */
     public function getMaxAge()
     {
         return $this->maxAge;
     }
 
+    /**
+     * @param string $destination
+     *
+     * @throws \LogicException
+     */
     public function setDestination($destination)
     {
         if ($this->destination) {
@@ -104,6 +130,9 @@ abstract class AbstractTransport implements Transport
         $this->destination = $destination;
     }
 
+    /**
+     * @inheritdoc
+     */
     public function getDestination()
     {
         if (!$this->destination) {
@@ -113,6 +142,11 @@ abstract class AbstractTransport implements Transport
         return $this->destination;
     }
 
+    /**
+     * @param string $destinationDir
+     *
+     * @throws \LogicException
+     */
     public function setDestinationDir($destinationDir)
     {
         if ($this->destination) {
@@ -126,16 +160,25 @@ abstract class AbstractTransport implements Transport
         $this->destinationDir = $destinationDir;
     }
 
+    /**
+     * @inheritdoc
+     */
     public function getDestinationDir()
     {
         return $this->destinationDir ?: sys_get_temp_dir();
     }
 
+    /**
+     * @return string
+     */
     public function getDefaultDestination()
     {
         return sprintf('%s/%s', rtrim($this->getDestinationDir(), '/'), $this->connection->getHash());
     }
 
+    /**
+     * @inheritdoc
+     */
     public function getFile()
     {
         $maxAge = new \DateTime();
@@ -144,6 +187,12 @@ abstract class AbstractTransport implements Transport
         return new \SplFileObject($this->download($maxAge));
     }
 
+    /**
+     * @param \DateTime $maxAge
+     *
+     * @return string
+     * @throws TransportException
+     */
     final public function download(\DateTime $maxAge = null)
     {
         $destination = $this->getDestination();
@@ -189,6 +238,12 @@ abstract class AbstractTransport implements Transport
         }
     }
 
+    /**
+     * @param  string   $destination
+     * @param \DateTime $maxAge
+     *
+     * @return boolean
+     */
     protected function needsDownload($destination, \DateTime $maxAge = null)
     {
         // download if file does not exist
@@ -218,5 +273,13 @@ abstract class AbstractTransport implements Transport
         return false;
     }
 
+    /**
+     * Performs the actual download, makes sure a file is present at the
+     * given destination
+     *
+     * @param string $destination
+     *
+     * @return void
+     */
     abstract protected function doDownload($destination);
 }
