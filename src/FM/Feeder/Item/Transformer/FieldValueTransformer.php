@@ -28,7 +28,25 @@ class FieldValueTransformer implements TransformerInterface
     }
 
     /**
+     * @return string
+     */
+    public function getField()
+    {
+        return $this->field;
+    }
+
+    /**
+     * @return DataTransformerInterface
+     */
+    public function getInnerTransformer()
+    {
+        return $this->transformer;
+    }
+
+    /**
      * @param ParameterBag $item
+     *
+     * @throws TransformationFailedException
      */
     public function transform(ParameterBag $item)
     {
