@@ -28,6 +28,8 @@ class ExpandAttributesNormalizer implements NormalizerInterface
      * @param string  $field
      * @param boolean $removeCompound
      * @param array   $overwriteKeys
+     *
+     * @throws UnexpectedTypeException
      */
     public function __construct($field = null, $removeCompound = false, array $overwriteKeys = array())
     {
