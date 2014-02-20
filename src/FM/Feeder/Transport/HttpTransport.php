@@ -3,15 +3,15 @@
 namespace FM\Feeder\Transport;
 
 use Doctrine\Common\Cache\FilesystemCache;
-use Guzzle\Http\Client;
+use FM\Feeder\Exception\TransportException;
 use Guzzle\Cache\DoctrineCacheAdapter;
+use Guzzle\Http\Client;
+use Guzzle\Http\Exception\BadResponseException;
 use Guzzle\Http\Exception\RequestException;
 use Guzzle\Http\Message\RequestInterface;
 use Guzzle\Http\Message\Response;
 use Guzzle\Plugin\Cache\CachePlugin;
 use Guzzle\Plugin\Cache\DefaultCacheStorage;
-use Guzzle\Http\Exception\BadResponseException;
-use FM\Feeder\Exception\TransportException;
 
 class HttpTransport extends AbstractTransport
 {

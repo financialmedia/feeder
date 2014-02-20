@@ -1,0 +1,37 @@
+<?php
+
+namespace FM\Feeder\Modifier\Data\Transformer;
+
+use FM\Feeder\Exception\TransformationFailedException;
+
+class TraversingTransformer implements TransformerInterface
+{
+    /**
+     * Transformer that will be applied to each value
+     *
+     * @var TransformerInterface
+     */
+    protected $transformer;
+
+    /**
+     * @param TransformerInterface $transformer transformer to apply
+     */
+    public function __construct(TransformerInterface $transformer)
+    {
+        $this->transformer = $transformer;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function transform($value)
+    {
+        if (!is_array($value) && !$value instanceof \Traversable) {
+            throw new TransformationFailedException(
+                sprintf('Expected an array or \Traversable to transform, got "%s" instead.', gettype($value))
+            );
+        }
+
+        return array_map([$this->transformer, 'transform'], $value);
+    }
+}

@@ -22,6 +22,11 @@ interface Transport
     public function getLastModifiedDate();
 
     /**
+     * @return integer|null
+     */
+    public function getSize();
+
+    /**
      * @return \SplFileObject
      */
     public function getFile();
@@ -38,4 +43,9 @@ interface Transport
      * @return void
      */
     public function purge();
+
+    /**
+     * @return string
+     */
+    public function __toString();
 }

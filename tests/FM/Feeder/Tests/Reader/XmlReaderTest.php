@@ -33,7 +33,7 @@ class XmlReaderTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException        FM\Feeder\Exception\ReadException
+     * @expectedException        \FM\Feeder\Exception\ReadException
      * @expectedExceptionMessage Opening and ending tag mismatch
      */
     public function testCurrentOnInvalidXml()
@@ -44,7 +44,7 @@ class XmlReaderTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException        FM\Feeder\Exception\ReadException
+     * @expectedException        \FM\Feeder\Exception\ReadException
      * @expectedExceptionMessage Opening and ending tag mismatch
      */
     public function testReadOnInvalidXml()
@@ -55,7 +55,7 @@ class XmlReaderTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException        FM\Feeder\Exception\ReadException
+     * @expectedException        \FM\Feeder\Exception\ReadException
      * @expectedExceptionMessage Opening and ending tag mismatch
      */
     public function testNextOnInvalidXml()

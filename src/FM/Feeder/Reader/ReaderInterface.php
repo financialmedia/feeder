@@ -2,8 +2,8 @@
 
 namespace FM\Feeder\Reader;
 
-use Symfony\Component\HttpFoundation\ParameterBag;
 use FM\Feeder\Resource\ResourceCollection;
+use Symfony\Component\HttpFoundation\ParameterBag;
 
 interface ReaderInterface extends \Iterator
 {

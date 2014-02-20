@@ -2,11 +2,11 @@
 
 namespace FM\Feeder\Resource\Transformer;
 
-use Symfony\Component\HttpFoundation\File\MimeType\MimeTypeGuesser;
-use FM\Feeder\Resource\Resource;
 use FM\Feeder\Resource\FileResource;
+use FM\Feeder\Resource\Resource;
 use FM\Feeder\Resource\ResourceCollection;
 use FM\Feeder\Transport\FileTransport;
+use Symfony\Component\HttpFoundation\File\MimeType\MimeTypeGuesser;
 
 class UnzipTransformer implements ResourceTransformer
 {

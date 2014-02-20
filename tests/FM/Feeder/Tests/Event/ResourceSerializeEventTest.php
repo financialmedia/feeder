@@ -1,6 +1,6 @@
 <?php
 
-namespace FM\CascoBundle\Tests\Import\Transformer;
+namespace FM\Feeder\Tests\Event;
 
 use FM\Feeder\Event\ResourceSerializeEvent;
 use FM\Feeder\Resource\StringResource;

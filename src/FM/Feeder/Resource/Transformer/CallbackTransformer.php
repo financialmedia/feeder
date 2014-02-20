@@ -2,9 +2,9 @@
 
 namespace FM\Feeder\Resource\Transformer;
 
+use FM\Feeder\Exception\UnexpectedTypeException;
 use FM\Feeder\Resource\Resource;
 use FM\Feeder\Resource\ResourceCollection;
-use FM\Feeder\Exception\UnexpectedTypeException;
 
 class CallbackTransformer implements ResourceTransformer
 {
