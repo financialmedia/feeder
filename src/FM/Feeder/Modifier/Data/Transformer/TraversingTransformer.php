@@ -26,12 +26,18 @@ class TraversingTransformer implements TransformerInterface
      */
     public function transform($value)
     {
+        // not an array, must be traversable
         if (!is_array($value) && !$value instanceof \Traversable) {
             throw new TransformationFailedException(
                 sprintf('Expected an array or \Traversable to transform, got "%s" instead.', gettype($value))
             );
         }
 
-        return array_map([$this->transformer, 'transform'], $value);
+        // traverse through object, transforming each item
+        foreach ($value as &$val) {
+            $val = $this->transformer->transform($val);
+        }
+
+        return $value;
     }
 }
