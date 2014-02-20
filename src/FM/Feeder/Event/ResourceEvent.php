@@ -2,9 +2,9 @@
 
 namespace FM\Feeder\Event;
 
-use Symfony\Component\EventDispatcher\Event;
 use FM\Feeder\Resource\Resource;
 use FM\Feeder\Resource\ResourceCollection;
+use Symfony\Component\EventDispatcher\Event;
 
 class ResourceEvent extends Event
 {

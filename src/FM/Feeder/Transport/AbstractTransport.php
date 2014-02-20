@@ -2,11 +2,11 @@
 
 namespace FM\Feeder\Transport;
 
-use Symfony\Component\EventDispatcher\EventDispatcher;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use FM\Feeder\FeedEvents;
 use FM\Feeder\Event\DownloadEvent;
 use FM\Feeder\Exception\TransportException;
+use FM\Feeder\FeedEvents;
+use Symfony\Component\EventDispatcher\EventDispatcher;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 abstract class AbstractTransport implements Transport
 {
@@ -239,7 +239,7 @@ abstract class AbstractTransport implements Transport
     }
 
     /**
-     * @param  string   $destination
+     * @param string    $destination
      * @param \DateTime $maxAge
      *
      * @return boolean

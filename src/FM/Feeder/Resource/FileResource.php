@@ -2,8 +2,8 @@
 
 namespace FM\Feeder\Resource;
 
-use FM\Feeder\Transport\Transport;
 use FM\Feeder\Exception\TransportException;
+use FM\Feeder\Transport\Transport;
 
 class FileResource implements Resource
 {

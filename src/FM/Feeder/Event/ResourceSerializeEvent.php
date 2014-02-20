@@ -2,8 +2,8 @@
 
 namespace FM\Feeder\Event;
 
-use Symfony\Component\EventDispatcher\Event;
 use FM\Feeder\Resource\Resource;
+use Symfony\Component\EventDispatcher\Event;
 
 class ResourceSerializeEvent extends Event
 {
@@ -18,8 +18,8 @@ class ResourceSerializeEvent extends Event
     protected $item;
 
     /**
-     * @param Resource $resource
-     * @param mixed    $item
+     * @param \FM\Feeder\Resource\Resource $resource
+     * @param mixed                        $item
      */
     public function __construct(Resource $resource, &$item)
     {
@@ -27,21 +27,33 @@ class ResourceSerializeEvent extends Event
         $this->item     = &$item;
     }
 
+    /**
+     * @return \FM\Feeder\Resource\Resource
+     */
     public function getResource()
     {
         return $this->resource;
     }
 
-    public function setResource($resource)
+    /**
+     * @param \FM\Feeder\Resource\Resource $resource
+     */
+    public function setResource(Resource $resource)
     {
         $this->resource = $resource;
     }
 
+    /**
+     * @return mixed
+     */
     public function &getItem()
     {
         return $this->item;
     }
 
+    /**
+     * @param mixed $item
+     */
     public function setItem($item)
     {
         $this->item = $item;

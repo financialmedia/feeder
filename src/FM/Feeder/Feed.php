@@ -2,23 +2,22 @@
 
 namespace FM\Feeder;
 
-use Symfony\Component\EventDispatcher\EventDispatcher;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use Symfony\Component\HttpFoundation\ParameterBag;
 use FM\Feeder\Event\FailedItemModificationEvent;
-use FM\Feeder\Event\ItemNotModifiedEvent;
-use FM\Feeder\Event\ItemModificationEvent;
 use FM\Feeder\Event\InvalidItemEvent;
+use FM\Feeder\Event\ItemModificationEvent;
+use FM\Feeder\Event\ItemNotModifiedEvent;
 use FM\Feeder\Exception\FilterException;
 use FM\Feeder\Exception\ModificationException;
 use FM\Feeder\Exception\ValidationException;
-use FM\Feeder\Item\ModifierInterface;
-use FM\Feeder\Item\Filter\FilterInterface;
-use FM\Feeder\Item\Mapper\MapperInterface;
-use FM\Feeder\Item\Normalizer\NormalizerInterface;
-use FM\Feeder\Item\Transformer\TransformerInterface;
-use FM\Feeder\Item\Validator\ValidatorInterface;
+use FM\Feeder\Modifier\Item\Filter\FilterInterface;
+use FM\Feeder\Modifier\Item\Mapper\MapperInterface;
+use FM\Feeder\Modifier\Item\ModifierInterface;
+use FM\Feeder\Modifier\Item\Transformer\TransformerInterface;
+use FM\Feeder\Modifier\Item\Validator\ValidatorInterface;
 use FM\Feeder\Reader\ReaderInterface;
+use Symfony\Component\EventDispatcher\EventDispatcher;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\HttpFoundation\ParameterBag;
 
 class Feed
 {
@@ -77,15 +76,6 @@ class Feed
     }
 
     /**
-     * @param NormalizerInterface $normalizer
-     * @param integer|null        $position
-     */
-    public function addNormalizer(NormalizerInterface $normalizer, $position = null)
-    {
-        $this->addModifier($normalizer, $position);
-    }
-
-    /**
      * @param FilterInterface $filter
      * @param integer|null    $position
      */
@@ -110,6 +100,15 @@ class Feed
     public function addTransformer(TransformerInterface $transformer, $position = null)
     {
         $this->addModifier($transformer, $position);
+    }
+
+    /**
+     * @param ValidatorInterface $validator
+     * @param integer|null       $position
+     */
+    public function addValidator(ValidatorInterface $validator, $position = null)
+    {
+        $this->addModifier($validator, $position);
     }
 
     /**
@@ -191,10 +190,6 @@ class Feed
             try {
                 if ($modifier instanceof FilterInterface) {
                     $modifier->filter($item);
-                }
-
-                if ($modifier instanceof NormalizerInterface) {
-                    $modifier->normalize($item);
                 }
 
                 if ($modifier instanceof MapperInterface) {

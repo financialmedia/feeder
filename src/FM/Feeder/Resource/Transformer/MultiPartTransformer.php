@@ -3,11 +3,11 @@
 namespace FM\Feeder\Resource\Transformer;
 
 use FM\Feeder\Reader\ReaderInterface;
-use FM\Feeder\Writer\WriterInterface;
+use FM\Feeder\Resource\FileResource;
 use FM\Feeder\Resource\Resource;
 use FM\Feeder\Resource\ResourceCollection;
-use FM\Feeder\Resource\FileResource;
 use FM\Feeder\Transport\FileTransport;
+use FM\Feeder\Writer\WriterInterface;
 
 class MultiPartTransformer implements ResourceTransformer
 {

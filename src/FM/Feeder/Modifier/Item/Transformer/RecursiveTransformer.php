@@ -1,0 +1,53 @@
+<?php
+
+namespace FM\Feeder\Modifier\Item\Transformer;
+
+use FM\Feeder\Modifier\Data\Transformer\TransformerInterface as DataTransformerInterface;
+use Symfony\Component\HttpFoundation\ParameterBag;
+
+class RecursiveTransformer implements TransformerInterface
+{
+    /**
+     * Transformer that will be applied recursively
+     *
+     * @var DataTransformerInterface
+     */
+    protected $transformer;
+
+    /**
+     * Constructor.
+     *
+     * @param DataTransformerInterface $transformer transformer to apply recursively
+     */
+    public function __construct(DataTransformerInterface $transformer)
+    {
+        $this->transformer = $transformer;
+    }
+
+    /**
+     * @param  ParameterBag $item
+     * @return mixed
+     */
+    public function transform(ParameterBag $item)
+    {
+        foreach ($item->all() as $key => $value) {
+            $item->set($key, $this->transformRecursive($value));
+        }
+    }
+
+    /**
+     * @param mixed $value
+     *
+     * @return mixed
+     */
+    protected function transformRecursive($value)
+    {
+        if (is_array($value) || $value instanceof \Traversable) {
+            $value = $this->transformRecursive($value);
+        } else {
+            $value = $this->transformer->transform($value);
+        }
+
+        return $value;
+    }
+}

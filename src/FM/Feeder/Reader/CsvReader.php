@@ -2,9 +2,9 @@
 
 namespace FM\Feeder\Reader;
 
+use FM\Feeder\Resource\Resource;
 use SplFileObject;
 use Symfony\Component\HttpFoundation\ParameterBag;
-use FM\Feeder\Resource\Resource;
 
 class CsvReader extends AbstractReader
 {

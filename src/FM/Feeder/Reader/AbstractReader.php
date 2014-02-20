@@ -2,14 +2,14 @@
 
 namespace FM\Feeder\Reader;
 
+use FM\Feeder\Event\ResourceEvent;
+use FM\Feeder\Event\ResourceSerializeEvent;
+use FM\Feeder\FeedEvents;
+use FM\Feeder\Resource\Resource;
+use FM\Feeder\Resource\ResourceCollection;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\ParameterBag;
-use FM\Feeder\FeedEvents;
-use FM\Feeder\Event\ResourceEvent;
-use FM\Feeder\Event\ResourceSerializeEvent;
-use FM\Feeder\Resource\Resource;
-use FM\Feeder\Resource\ResourceCollection;
 
 abstract class AbstractReader implements ReaderInterface
 {

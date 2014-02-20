@@ -6,37 +6,70 @@ use XmlWriter as BaseXmlWriter;
 
 class XmlWriter implements WriterInterface
 {
+    /**
+     * @var \SplFileObject
+     */
     protected $file;
+
+    /**
+     * @var BaseXmlWriter
+     */
     protected $writer;
-    protected $ident = false;
+
+    /**
+     * @var boolean
+     */
+    protected $indent = false;
+
+    /**
+     * @var string
+     */
     protected $rootNode = 'feed';
 
+    /**
+     * @inheritdoc
+     */
     public function __construct(\SplFileObject $file = null)
     {
         $this->file = $file;
     }
 
+    /**
+     * The clone magic method
+     */
     public function __clone()
     {
         $this->file = null;
         $this->writer = null;
     }
 
+    /**
+     * @inheritdoc
+     */
     public function setFile(\SplFileObject $file)
     {
         $this->file = $file;
     }
 
-    public function setIdent($ident)
+    /**
+     * @param boolean $ident
+     */
+    public function setIndent($ident)
     {
-        $this->ident = (boolean) $ident;
+        $this->indent = (boolean) $ident;
     }
 
+    /**
+     * @param string $node
+     */
     public function setRootNode($node)
     {
         $this->rootNode = $node;
     }
 
+    /**
+     * @inheritdoc
+     */
     public function start()
     {
         if ($this->writer) {
@@ -45,11 +78,14 @@ class XmlWriter implements WriterInterface
 
         $this->writer = new BaseXmlWriter();
         $this->writer->openUri($this->file->getPathname());
-        $this->writer->setIndent($this->ident);
+        $this->writer->setIndent($this->indent);
         $this->writer->startDocument('1.0', 'UTF-8');
         $this->write(sprintf('<%s>', $this->rootNode));
     }
 
+    /**
+     * @inheritdoc
+     */
     public function write($data)
     {
         if (!$this->writer) {
@@ -59,6 +95,9 @@ class XmlWriter implements WriterInterface
         $this->writer->writeRaw($data);
     }
 
+    /**
+     * @inheritdoc
+     */
     public function flush()
     {
         if (!$this->writer) {
@@ -68,6 +107,9 @@ class XmlWriter implements WriterInterface
         $this->writer->flush();
     }
 
+    /**
+     * @inheritdoc
+     */
     public function end()
     {
         if (!$this->writer) {

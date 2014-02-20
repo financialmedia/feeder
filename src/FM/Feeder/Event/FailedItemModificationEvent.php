@@ -2,9 +2,9 @@
 
 namespace FM\Feeder\Event;
 
+use FM\Feeder\Modifier\Item\ModifierInterface;
 use Symfony\Component\EventDispatcher\Event;
 use Symfony\Component\HttpFoundation\ParameterBag;
-use FM\Feeder\Item\ModifierInterface;
 
 class FailedItemModificationEvent extends Event
 {

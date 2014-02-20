@@ -2,13 +2,13 @@
 
 namespace FM\Feeder\Reader;
 
+use FM\Feeder\Exception\ReadException;
+use FM\Feeder\Resource\Resource;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\ParameterBag;
-use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
 use Symfony\Component\Serializer\Normalizer\CustomNormalizer;
-use FM\Feeder\Resource\Resource;
-use FM\Feeder\Exception\ReadException;
+use Symfony\Component\Serializer\Serializer;
 
 class XmlReader extends AbstractReader
 {

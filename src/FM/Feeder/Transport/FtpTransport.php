@@ -2,9 +2,9 @@
 
 namespace FM\Feeder\Transport;
 
-use FM\Feeder\FeedEvents;
 use FM\Feeder\Event\DownloadProgressEvent;
 use FM\Feeder\Exception\TransportException;
+use FM\Feeder\FeedEvents;
 use FM\Feeder\Transport\Matcher\FileMatcher;
 use FM\Feeder\Transport\Matcher\GlobMatcher;
 use FM\Feeder\Transport\Matcher\MatcherInterface;
