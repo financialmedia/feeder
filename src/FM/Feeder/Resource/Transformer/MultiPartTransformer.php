@@ -26,13 +26,8 @@ class MultiPartTransformer implements ResourceTransformer
 
     public function transform(Resource $resource, ResourceCollection $collection)
     {
-        // find files that match the part-regex
-        $files = $this->getPartFiles($resource);
-
-        if (empty($files)) {
-            // break up again
-            $files = $this->breakup($resource);
-        }
+        // break up again
+        $files = $this->breakup($resource);
 
         $resources = [];
         foreach ($files as $file) {
