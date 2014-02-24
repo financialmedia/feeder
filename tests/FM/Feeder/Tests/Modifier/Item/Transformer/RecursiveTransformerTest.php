@@ -14,12 +14,14 @@ use Symfony\Component\HttpFoundation\ParameterBag;
  */
 class RecursiveTransformerTest extends \PHPUnit_Framework_TestCase
 {
-    public function testTransformer()
+    /**
+     * @dataProvider getTestvalues
+     */
+    public function testTransformer(array $testdata, array $expected)
     {
         $item = new ParameterBag();
 
-        $item->set('key', 'value');
-        $item->set('array', ['value1', 'value2', '', ['value3', 'value4', '']]);
+        $item->add($testdata);
 
         $original = $item->all();
 
@@ -27,38 +29,17 @@ class RecursiveTransformerTest extends \PHPUnit_Framework_TestCase
 
         $transformer->transform($item);
 
-        $array = $item->all();
+        $result = $item->all();
 
-        $this->iterate($array, $original);
-
+        $this->assertSame($result, $expected);
     }
 
-    /**
-     * @param $resultValue
-     * @param $originalValue
-     */
-    protected function iterate($resultValue, $originalValue)
+    public static function getTestvalues()
     {
-        if (is_array($resultValue)) {
-            foreach($resultValue as $key=>$value){
-                $this->iterate($resultValue[$key], $originalValue[$key]);
-            }
-        } else {
-            $this->unittest($resultValue, $originalValue);
-        }
-    }
-
-    /**
-     * @param $resultValue
-     * @param $originalValue
-     */
-    protected function unittest($resultValue, $originalValue)
-    {
-        //An empty string should be transformed into an NULL value. So when the $originalValue is an empty string, I expect a NULL.
-        if ($originalValue === '') {
-            $originalValue = null;
-        }
-
-        $this->assertSame($resultValue, $originalValue);
+        return [
+            [['array', ['value1', 'value2', '', ['value3', 'value4', '']]], ['array', ['value1', 'value2', null, ['value3', 'value4', null]]]],
+            [['key' => 'value'], ['key' => 'value']],
+            [['key' => 'value', 'aap' => 'banaan'], ['key' => 'value', 'aap' => 'banaan']],
+        ];
     }
 }
