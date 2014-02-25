@@ -67,6 +67,14 @@ class FileTransport extends AbstractTransport
     }
 
     /**
+     * @return string
+     */
+    public function getDefaultDestination()
+    {
+        return $this->connection['file'];
+    }
+
+    /**
      * @inheritdoc
      */
     protected function doDownload($destination)
