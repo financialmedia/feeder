@@ -166,7 +166,7 @@ class Feed
                 }
 
                 $this->eventDispatcher->dispatch(
-                    FeedEvents::ITEM_MODIFICATION_FAILED,
+                    FeedEvents::ITEM_FAILED,
                     new ItemNotModifiedEvent($item, $e->getMessage())
                 );
             }
@@ -214,7 +214,7 @@ class Feed
                 $event = new FailedItemModificationEvent($item, $modifier, $e);
                 $event->setContinue($this->continues[$position]);
 
-                $this->eventDispatcher->dispatch(FeedEvents::ITEM_MODIFICATION_FAIL, $event);
+                $this->eventDispatcher->dispatch(FeedEvents::ITEM_MODIFICATION_FAILED, $event);
 
                 if (!$event->getContinue()) {
                     throw $e;
