@@ -43,7 +43,9 @@ class RecursiveTransformer implements TransformerInterface
     protected function transformRecursive($value)
     {
         if (is_array($value) || $value instanceof \Traversable) {
-            $value = $this->transformRecursive($value);
+            foreach ($value as &$subvalue) {
+                $subvalue = $this->transformRecursive($subvalue);
+            }
         } else {
             $value = $this->transformer->transform($value);
         }
