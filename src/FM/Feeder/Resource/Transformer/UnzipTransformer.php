@@ -2,6 +2,7 @@
 
 namespace FM\Feeder\Resource\Transformer;
 
+use FM\Feeder\Exception\TransportException;
 use FM\Feeder\Resource\FileResource;
 use FM\Feeder\Resource\Resource;
 use FM\Feeder\Resource\ResourceCollection;
@@ -10,12 +11,19 @@ use Symfony\Component\HttpFoundation\File\MimeType\MimeTypeGuesser;
 
 class UnzipTransformer implements ResourceTransformer
 {
+    /**
+     * @var string
+     */
     protected $target;
+
+    /**
+     * @var string[]
+     */
     protected $files;
 
     /**
      * @param string $files  The filename(s) in the zip file to return
-     * @param string $target Target directory
+     * @param string $target Target directory, defaults to the directory in which the zip is located
      *
      * @throws \InvalidArgumentException
      */
@@ -38,6 +46,9 @@ class UnzipTransformer implements ResourceTransformer
         $this->target = $target;
     }
 
+    /**
+     * @inheritdoc
+     */
     public function transform(Resource $resource, ResourceCollection $collection)
     {
         if ($this->needsUnzipping($resource)) {
@@ -46,7 +57,12 @@ class UnzipTransformer implements ResourceTransformer
 
         $resources = [];
         foreach ($this->files as $file) {
-            $transport = FileTransport::create($this->getTargetFile($resource, $file));
+            $targetFile = $this->getTargetFile($resource, $file);
+            if (!file_exists($targetFile)) {
+                throw new TransportException(sprintf('File "%s" was not found in the archive', $targetFile));
+            }
+
+            $transport = FileTransport::create($targetFile);
             $transport->setDestinationDir($this->getTargetDir($resource));
             $resources[] = new FileResource($transport);
         }
@@ -56,6 +72,9 @@ class UnzipTransformer implements ResourceTransformer
         return $collection->shift();
     }
 
+    /**
+     * @inheritdoc
+     */
     public function needsTransforming(Resource $resource)
     {
         $resourceFile = (string) $resource->getTransport();
@@ -71,6 +90,11 @@ class UnzipTransformer implements ResourceTransformer
         return $this->isExtractable($resource);
     }
 
+    /**
+     * @param \FM\Feeder\Resource\Resource $resource
+     *
+     * @return boolean
+     */
     protected function needsUnzipping(Resource $resource)
     {
         foreach ($this->files as $file) {
@@ -83,6 +107,11 @@ class UnzipTransformer implements ResourceTransformer
         return false;
     }
 
+    /**
+     * @param \FM\Feeder\Resource\Resource $resource
+     *
+     * @return boolean
+     */
     protected function isExtractable(Resource $resource)
     {
         $guesser = MimeTypeGuesser::getInstance();
@@ -90,6 +119,9 @@ class UnzipTransformer implements ResourceTransformer
         return $guesser->guess($resource->getFile()->getPathname()) === 'application/zip';
     }
 
+    /**
+     * @param \FM\Feeder\Resource\Resource $resource
+     */
     protected function unzip(Resource $resource)
     {
         $zip = new \ZipArchive();
@@ -97,11 +129,23 @@ class UnzipTransformer implements ResourceTransformer
         $zip->extractTo($this->getTargetDir($resource));
     }
 
+
+    /**
+     * @param \FM\Feeder\Resource\Resource $resource
+     *
+     * @return string
+     */
     protected function getTargetDir(Resource $resource)
     {
         return $this->target ?: $resource->getFile()->getPath();
     }
 
+    /**
+     * @param \FM\Feeder\Resource\Resource $resource
+     * @param string                       $filename
+     *
+     * @return string
+     */
     protected function getTargetFile(Resource $resource, $filename)
     {
         return sprintf('%s/%s', $this->getTargetDir($resource), $filename);
