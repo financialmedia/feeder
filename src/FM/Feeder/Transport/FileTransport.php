@@ -2,6 +2,7 @@
 
 namespace FM\Feeder\Transport;
 
+use FM\Feeder\Exception\TransportException;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class FileTransport extends AbstractTransport
@@ -18,7 +19,7 @@ class FileTransport extends AbstractTransport
         }
 
         if (!is_readable($this->connection['file'])) {
-            throw new \InvalidArgumentException(sprintf('Not readable: %s', $this->connection['file']));
+            throw new TransportException(sprintf('Not readable: %s', $this->connection['file']));
         }
     }
 
