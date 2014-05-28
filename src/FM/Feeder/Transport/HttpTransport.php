@@ -2,16 +2,12 @@
 
 namespace FM\Feeder\Transport;
 
-use Doctrine\Common\Cache\FilesystemCache;
 use FM\Feeder\Exception\TransportException;
-use Guzzle\Cache\DoctrineCacheAdapter;
 use Guzzle\Http\Client;
 use Guzzle\Http\Exception\BadResponseException;
 use Guzzle\Http\Exception\RequestException;
 use Guzzle\Http\Message\RequestInterface;
 use Guzzle\Http\Message\Response;
-use Guzzle\Plugin\Cache\CachePlugin;
-use Guzzle\Plugin\Cache\DefaultCacheStorage;
 
 class HttpTransport extends AbstractTransport
 {
@@ -19,11 +15,6 @@ class HttpTransport extends AbstractTransport
      * @var Client
      */
     protected $client;
-
-    /**
-     * @var CachePlugin
-     */
-    protected $cache;
 
     /**
      * Response object for the HEAD call, containing the resource's info
@@ -135,30 +126,10 @@ class HttpTransport extends AbstractTransport
     }
 
     /**
-     * @return CachePlugin
-     */
-    public function getCache()
-    {
-        if (null === $this->cache) {
-            $this->cache = new CachePlugin([
-                'storage' => new DefaultCacheStorage(
-                    new DoctrineCacheAdapter(new FilesystemCache(sys_get_temp_dir())),
-                    'feeder'
-                )
-            ]);
-        }
-
-        return $this->cache;
-    }
-
-    /**
      * @param Client $client
      */
     public function setClient(Client $client)
     {
-        // Add the cache plugin to the client object
-        $client->addSubscriber($this->getCache());
-
         $this->client = $client;
     }
 
@@ -220,16 +191,6 @@ class HttpTransport extends AbstractTransport
     }
 
     /**
-     * @inheritdoc
-     */
-    public function purge()
-    {
-        parent::purge();
-
-        $this->getCache()->purge($this->getUrl());
-    }
-
-    /**
      * @param string $method
      *
      * @return RequestInterface
@@ -243,7 +204,6 @@ class HttpTransport extends AbstractTransport
 
         /** @var RequestInterface $request */
         $request = $this->client->$method($this->getUrl());
-        $request->getParams()->set('cache.override_ttl', $this->maxAge ?: 3600);
 
         if (($user = $this->getUser()) && ($pass = $this->getPass())) {
             $request->setAuth($user, $pass);
