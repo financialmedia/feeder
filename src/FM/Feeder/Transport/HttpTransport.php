@@ -13,7 +13,7 @@ use Guzzle\Http\Message\RequestInterface;
 use Guzzle\Http\Message\Response;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
-class HttpTransport extends AbstractTransport implements EventSubscriberInterface
+class HttpTransport extends AbstractTransport implements EventSubscriberInterface, ProgressAwareInterface
 {
     /**
      * @var Client

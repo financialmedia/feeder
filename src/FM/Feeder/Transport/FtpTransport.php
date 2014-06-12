@@ -10,7 +10,7 @@ use FM\Feeder\Transport\Matcher\GlobMatcher;
 use FM\Feeder\Transport\Matcher\MatcherInterface;
 use FM\Feeder\Transport\Matcher\PatternMatcher;
 
-class FtpTransport extends AbstractTransport
+class FtpTransport extends AbstractTransport implements ProgressAwareInterface
 {
     /**
      * @var resource
