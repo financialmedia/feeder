@@ -2,7 +2,9 @@
 
 namespace FM\Feeder\Transport;
 
+use FM\Feeder\Event\DownloadProgressEvent;
 use FM\Feeder\Exception\TransportException;
+use FM\Feeder\FeedEvents;
 use Guzzle\Http\Client;
 use Guzzle\Http\Exception\BadResponseException;
 use Guzzle\Http\Exception\RequestException;
@@ -233,10 +235,21 @@ class HttpTransport extends AbstractTransport
         $stream = $response->getBody();
         $stream->rewind();
 
+        $currentBytes = 0;
+        $fileSize = $this->getSize();
+        $diff = 1024;
+
         // save to destination
         $f = fopen($destination, 'w');
         while (!$stream->feof()) {
-            fwrite($f, $stream->read(1024));
+            fwrite($f, $stream->read($diff));
+
+            $currentBytes += $diff;
+
+            $this->eventDispatcher->dispatch(
+                FeedEvents::DOWNLOAD_PROGRESS,
+                new DownloadProgressEvent($currentBytes, $diff, $fileSize)
+            );
         }
 
         fclose($f);
