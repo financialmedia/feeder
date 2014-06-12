@@ -40,7 +40,7 @@ class HttpTransport extends AbstractTransport implements EventSubscriberInterfac
      *
      * @var int number of bytes downloaded in total
      */
-    protected $lastDownloaded = 0;
+    protected $bytesDownloaded = 0;
 
     /**
      * @inheritdoc
@@ -211,10 +211,10 @@ class HttpTransport extends AbstractTransport implements EventSubscriberInterfac
         if ($event['handle'] && $event['downloaded']) {
             $this->eventDispatcher->dispatch(
                 FeedEvents::DOWNLOAD_PROGRESS,
-                new DownloadProgressEvent($event['downloaded'], $event['downloaded'] - $this->lastDownloaded, $event['download_size'])
+                new DownloadProgressEvent($event['downloaded'], $event['downloaded'] - $this->bytesDownloaded, $event['download_size'])
             );
 
-            $this->lastDownloaded = $event['downloaded'];
+            $this->bytesDownloaded = $event['downloaded'];
         }
     }
 
@@ -267,7 +267,7 @@ class HttpTransport extends AbstractTransport implements EventSubscriberInterfac
         $request->setResponseBody($f);
 
         try {
-            $this->lastDownloaded = 0;
+            $this->bytesDownloaded = 0;
 
             $response = $request->send();
         } catch (RequestException $e) {
