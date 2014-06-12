@@ -5,13 +5,15 @@ namespace FM\Feeder\Transport;
 use FM\Feeder\Event\DownloadProgressEvent;
 use FM\Feeder\Exception\TransportException;
 use FM\Feeder\FeedEvents;
+use Guzzle\Common\Event;
 use Guzzle\Http\Client;
 use Guzzle\Http\Exception\BadResponseException;
 use Guzzle\Http\Exception\RequestException;
 use Guzzle\Http\Message\RequestInterface;
 use Guzzle\Http\Message\Response;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
-class HttpTransport extends AbstractTransport
+class HttpTransport extends AbstractTransport implements EventSubscriberInterface
 {
     /**
      * @var Client
@@ -32,6 +34,13 @@ class HttpTransport extends AbstractTransport
      * @var boolean
      */
     protected $useInfo = true;
+
+    /**
+     * Track download progress
+     *
+     * @var int number of bytes downloaded in total
+     */
+    protected $lastDownloaded = 0;
 
     /**
      * @inheritdoc
@@ -178,6 +187,8 @@ class HttpTransport extends AbstractTransport
         if (($response = $this->getRequestInfo()) && ($lastModifiedDate = $response->getLastModified())) {
             return new \DateTime($lastModifiedDate);
         }
+
+        return null;
     }
 
     /**
@@ -190,6 +201,31 @@ class HttpTransport extends AbstractTransport
         }
 
         return null;
+    }
+
+    /**
+     * @param \Guzzle\Common\Event $event
+     */
+    public function onCurlProgress(Event $event)
+    {
+        if ($event['handle'] && $event['downloaded']) {
+            $this->eventDispatcher->dispatch(
+                FeedEvents::DOWNLOAD_PROGRESS,
+                new DownloadProgressEvent($event['downloaded'], $event['downloaded'] - $this->lastDownloaded, $event['download_size'])
+            );
+
+            $this->lastDownloaded = $event['downloaded'];
+        }
+    }
+
+    /**
+     * @return array
+     */
+    public static function getSubscribedEvents()
+    {
+        return [
+            'curl.callback.progress' => 'onCurlProgress',
+        ];
     }
 
     /**
@@ -211,6 +247,12 @@ class HttpTransport extends AbstractTransport
             $request->setAuth($user, $pass);
         }
 
+        if ('get' === $method) {
+            // enable progress tracking
+            $request->addSubscriber($this);
+            $request->getCurlOptions()->set('progress', true);
+        }
+
         return $request;
     }
 
@@ -219,9 +261,14 @@ class HttpTransport extends AbstractTransport
      */
     protected function doDownload($destination)
     {
+        $f = fopen($destination, 'w');
+
         $request = $this->getRequest();
+        $request->setResponseBody($f);
 
         try {
+            $this->lastDownloaded = 0;
+
             $response = $request->send();
         } catch (RequestException $e) {
             throw new TransportException(sprintf('Could not download feed: %s', $e->getMessage()), null, $e);
@@ -229,27 +276,6 @@ class HttpTransport extends AbstractTransport
 
         if (!$response->isSuccessful()) {
             throw new TransportException('Server responded with code ' . $response->getStatusCode());
-        }
-
-        // get body as a stream, this way we consume less memory
-        $stream = $response->getBody();
-        $stream->rewind();
-
-        $currentBytes = 0;
-        $fileSize = $this->getSize();
-        $diff = 1024;
-
-        // save to destination
-        $f = fopen($destination, 'w');
-        while (!$stream->feof()) {
-            fwrite($f, $stream->read($diff));
-
-            $currentBytes += $diff;
-
-            $this->eventDispatcher->dispatch(
-                FeedEvents::DOWNLOAD_PROGRESS,
-                new DownloadProgressEvent($currentBytes, $diff, $fileSize)
-            );
         }
 
         fclose($f);
