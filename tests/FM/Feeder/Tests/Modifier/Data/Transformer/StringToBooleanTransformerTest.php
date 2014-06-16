@@ -31,6 +31,8 @@ class StringToBooleanTransformerTest extends \PHPUnit_Framework_TestCase
             ['',    null],  // empty is considered null
             [true,  true],  // leave existing boolean alone
             [false, false], // leave existing boolean alone
+            [0,     false], // cast to boolean
+            [1,     true], // cast to boolean
             ['0',   false], // cast to boolean
             ['1',   true],  // cast to boolean
             ['foo', true],  // cast to boolean

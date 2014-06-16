@@ -71,9 +71,9 @@ class StringToBooleanTransformer implements TransformerInterface
             return $value;
         }
 
-        if (!is_string($value)) {
+        if (!is_scalar($value)) {
             throw new TransformationFailedException(
-                sprintf('Expected a string to transform, got "%s" instead.', json_encode($value))
+                sprintf('Expected a scalar value to transform, got %s instead.', var_export($value, true))
             );
         }
 
