@@ -190,8 +190,9 @@ abstract class AbstractTransport implements Transport
     /**
      * @param \DateTime $maxAge
      *
-     * @return string
      * @throws TransportException
+     *
+     * @return string
      */
     final public function download(\DateTime $maxAge = null)
     {
@@ -208,8 +209,18 @@ abstract class AbstractTransport implements Transport
                 }
             }
 
+            // perform an atomic write operation: first write to a tmp destination, then rename it.
+            $tmpDestination = $this->getTempDestination($destination);
+
             $this->eventDispatcher->dispatch(FeedEvents::PRE_DOWNLOAD, $event);
-            $this->doDownload($destination);
+
+            $this->doDownload($tmpDestination);
+            if (false === rename($tmpDestination, $destination)) {
+                unlink($tmpDestination);
+
+                throw new TransportException(sprintf('Could not rename "%s" to "%s"', $tmpDestination, $destination));
+            }
+
             $this->eventDispatcher->dispatch(FeedEvents::POST_DOWNLOAD, $event);
         } else {
             $this->eventDispatcher->dispatch(FeedEvents::CACHED, $event);
@@ -236,6 +247,16 @@ abstract class AbstractTransport implements Transport
         if (is_file($destination)) {
             unlink($destination);
         }
+    }
+
+    /**
+     * @param string $destination
+     *
+     * @return string
+     */
+    protected function getTempDestination($destination)
+    {
+        return tempnam(dirname($destination), basename($destination));
     }
 
     /**
