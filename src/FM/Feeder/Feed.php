@@ -142,13 +142,26 @@ class Feed
      */
     public function removeModifier(ModifierInterface $modifier)
     {
-        foreach ($this->modifiers as $key => $_modifier) {
+        foreach ($this->modifiers as $position => $_modifier) {
             if ($_modifier === $modifier) {
-                unset($this->modifiers[$key]);
+                unset($this->modifiers[$position]);
 
                 break;
             }
         }
+    }
+
+    /**
+     * @param  integer               $position
+     * @throws \OutOfBoundsException
+     */
+    public function removeModifierAt($position)
+    {
+        if (!array_key_exists($position, $this->modifiers)) {
+            throw new \OutOfBoundsException(sprintf('There is no modifier at position %d', $position));
+        }
+
+        unset($this->modifiers[$position]);
     }
 
     /**
