@@ -15,7 +15,6 @@ use FM\Feeder\Modifier\Item\ModifierInterface;
 use FM\Feeder\Modifier\Item\Transformer\TransformerInterface;
 use FM\Feeder\Modifier\Item\Validator\ValidatorInterface;
 use FM\Feeder\Reader\ReaderInterface;
-use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\ParameterBag;
 
@@ -136,6 +135,20 @@ class Feed
         $this->continues[$position] = $continueOnException;
 
         ksort($this->modifiers);
+    }
+
+    /**
+     * @param ModifierInterface $modifier
+     */
+    public function removeModifier(ModifierInterface $modifier)
+    {
+        foreach ($this->modifiers as $key => $_modifier) {
+            if ($_modifier === $modifier) {
+                unset($this->modifiers[$key]);
+
+                break;
+            }
+        }
     }
 
     /**
