@@ -15,6 +15,7 @@ use FM\Feeder\Modifier\Item\ModifierInterface;
 use FM\Feeder\Modifier\Item\Transformer\TransformerInterface;
 use FM\Feeder\Modifier\Item\Validator\ValidatorInterface;
 use FM\Feeder\Reader\ReaderInterface;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\ParameterBag;
 
@@ -152,7 +153,8 @@ class Feed
     }
 
     /**
-     * @param  integer               $position
+     * @param integer $position
+     *
      * @throws \OutOfBoundsException
      */
     public function removeModifierAt($position)
@@ -162,6 +164,16 @@ class Feed
         }
 
         unset($this->modifiers[$position]);
+    }
+
+    /**
+     * @param integer $position
+     *
+     * @return bool
+     */
+    public function hasModifierAt($position)
+    {
+        return array_key_exists($position, $this->modifiers);
     }
 
     /**
