@@ -32,6 +32,12 @@ class XmlReader extends AbstractReader
      */
     protected $key;
 
+    /**
+     * @param mixed                    $resources  Optional resource collection. Can be a Resource, an array of
+     *                                             Resource's, or a ResourceCollection. When empty, a new collection
+     *                                             will be created.
+     * @param EventDispatcherInterface $dispatcher Optional event dispatcher.
+     */
     public function __construct($resources = null, EventDispatcherInterface $dispatcher = null)
     {
         parent::__construct($resources, $dispatcher);
@@ -43,9 +49,11 @@ class XmlReader extends AbstractReader
     }
 
     /**
-     * @param  mixed                     $nextNode Callback to get the next node from the current resource. Can be a callback or a node name.
-     * @return \Closure
+     * @param mixed $nextNode Callback to get the next node from the current resource. Can be a callback or a node name.
+     *
      * @throws \InvalidArgumentException
+     *
+     * @return \Closure
      */
     public function setNodeCallback($nextNode)
     {
@@ -71,21 +79,33 @@ class XmlReader extends AbstractReader
         };
     }
 
+    /**
+     * @inheritdoc
+     */
     protected function doKey()
     {
         return $this->key;
     }
 
+    /**
+     * @inheritdoc
+     */
     protected function doCurrent()
     {
         return $this->readerOperation($this->reader, 'readOuterXml');
     }
 
+    /**
+     * @inheritdoc
+     */
     protected function doNext()
     {
         $this->moveToNextNode($this->reader);
     }
 
+    /**
+     * @inheritdoc
+     */
     protected function doRewind()
     {
         $this->reader->close();
@@ -96,11 +116,21 @@ class XmlReader extends AbstractReader
         $this->next();
     }
 
+    /**
+     * @inheritdoc
+     */
     protected function doValid()
     {
         return (boolean) $this->doCurrent();
     }
 
+    /**
+     * @param \XMLReader $reader
+     *
+     * @throws \LogicException
+     *
+     * @return mixed
+     */
     protected function moveToNextNode(\XMLReader $reader)
     {
         if (!$this->nextNode instanceof \Closure) {
@@ -112,6 +142,9 @@ class XmlReader extends AbstractReader
         return call_user_func($this->nextNode, $reader);
     }
 
+    /**
+     * @inheritdoc
+     */
     protected function createReader(Resource $resource)
     {
         $this->reader = new \XmlReader();
@@ -121,11 +154,18 @@ class XmlReader extends AbstractReader
         $this->next();
     }
 
+    /**
+     * @inheritdoc
+     */
     protected function serialize($data)
     {
         return new ParameterBag((array) $this->serializer->decode($data, 'xml'));
     }
 
+    /**
+     * @param string  $file
+     * @param integer $options
+     */
     protected function open($file, $options = null)
     {
         if (is_null($options)) {
@@ -135,6 +175,9 @@ class XmlReader extends AbstractReader
         $this->reader->open($file, null, $options);
     }
 
+    /**
+     * @return string
+     */
     private function getXmlError()
     {
         // just return the first error
@@ -148,8 +191,18 @@ class XmlReader extends AbstractReader
                 $error->column
             );
         }
+
+        return null;
     }
 
+    /**
+     * @param \XmlReader $reader
+     * @param string     $method
+     *
+     * @throws ReadException
+     *
+     * @return mixed
+     */
     private function readerOperation(\XmlReader $reader, $method)
     {
         // clear any previous errors

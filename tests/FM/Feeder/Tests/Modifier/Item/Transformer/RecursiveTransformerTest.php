@@ -8,9 +8,6 @@ use Symfony\Component\HttpFoundation\ParameterBag;
 
 /**
  * Test recursive an array, EmptyValueToNullTransformer is used to test.
- *
- * Class RecursiveTransformerTest
- * @package FM\Feeder\Tests\Modifier\Item\Transformer
  */
 class RecursiveTransformerTest extends \PHPUnit_Framework_TestCase
 {
@@ -19,16 +16,10 @@ class RecursiveTransformerTest extends \PHPUnit_Framework_TestCase
      */
     public function testTransformer(array $testdata, array $expected)
     {
-        $item = new ParameterBag();
-
-        $item->add($testdata);
-
-        $original = $item->all();
-
         $transformer = new RecursiveTransformer(new EmptyValueToNullTransformer());
 
+        $item = new ParameterBag($testdata);
         $transformer->transform($item);
-
         $result = $item->all();
 
         $this->assertSame($result, $expected);
@@ -37,9 +28,18 @@ class RecursiveTransformerTest extends \PHPUnit_Framework_TestCase
     public static function getTestvalues()
     {
         return [
-            [['array', ['value1', 'value2', '', ['value3', 'value4', '']]], ['array', ['value1', 'value2', null, ['value3', 'value4', null]]]],
-            [['key' => 'value'], ['key' => 'value']],
-            [['key' => 'value', 'aap' => 'banaan'], ['key' => 'value', 'aap' => 'banaan']],
+            [
+                ['array', ['value1', 'value2', '', ['value3', 'value4', '']]],
+                ['array', ['value1', 'value2', null, ['value3', 'value4', null]]]
+            ],
+            [
+                ['key' => 'value'],
+                ['key' => 'value']
+            ],
+            [
+                ['key' => 'value', 'aap' => 'banaan'],
+                ['key' => 'value', 'aap' => 'banaan']
+            ],
         ];
     }
 }
