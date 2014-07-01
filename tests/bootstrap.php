@@ -6,4 +6,4 @@ if (!file_exists($file)) {
 }
 
 $loader = require $file;
-$loader->add('FM\Feeder\Tests', __DIR__);
+$loader->setPsr4('FM\\Feeder\\Tests\\', __DIR__ . '/FM/Feeder/Tests');

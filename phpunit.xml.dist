@@ -18,16 +18,9 @@
     </testsuite>
   </testsuites>
 
-  <logging>
-    <log type="coverage-html" target="/tmp/report" charset="UTF-8" />
-  </logging>
-
   <filter>
     <whitelist>
       <directory suffix=".php">./src</directory>
-      <exclude>
-        <directory>./src/FM/Feeder/Tests</directory>
-      </exclude>
     </whitelist>
   </filter>
 </phpunit>
