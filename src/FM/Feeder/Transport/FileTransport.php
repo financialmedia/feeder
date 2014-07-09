@@ -72,7 +72,13 @@ class FileTransport extends AbstractTransport
      */
     public function getDefaultDestination()
     {
-        return $this->connection['file'];
+        // if the destination dir is not set or the same, use the original file
+        if (!$this->getDestinationDir() || (dirname($this->connection['file']) === $this->getDestinationDir())) {
+            return $this->connection['file'];
+        }
+
+        // make sure the file is copied to the specified destination
+        return sprintf('%s/%s', rtrim($this->getDestinationDir(), '/'), basename($this->connection['file']));
     }
 
     /**
