@@ -13,6 +13,11 @@ use FM\Feeder\Exception\TransformationFailedException;
 class LocalizedStringToNumberTransformer implements TransformerInterface
 {
     /**
+     * @var integer
+     */
+    protected $type;
+
+    /**
      * Number of fraction digits
      *
      * @var integer
@@ -43,13 +48,22 @@ class LocalizedStringToNumberTransformer implements TransformerInterface
     /**
      * Constructor
      *
+     * @param integer $type
      * @param integer $precision
      * @param boolean $grouping
      * @param integer $roundingMode
      * @param string  $locale
      */
-    public function __construct($precision = null, $grouping = null, $roundingMode = null, $locale = null)
+    public function __construct(
+        $type = \NumberFormatter::TYPE_DOUBLE,
+        $precision = null,
+        $grouping = null,
+        $roundingMode = null,
+        $locale = null
+    )
     {
+        $this->type = $type;
+
         if (null === $grouping) {
             $grouping = false;
         }
@@ -104,7 +118,7 @@ class LocalizedStringToNumberTransformer implements TransformerInterface
             $value = str_replace(',', $decSep, $value);
         }
 
-        $result = $formatter->parse($value, \NumberFormatter::TYPE_DOUBLE, $position);
+        $result = $formatter->parse($value, $this->type, $position);
 
         if (intl_is_failure($formatter->getErrorCode())) {
             throw new TransformationFailedException($formatter->getErrorMessage());
