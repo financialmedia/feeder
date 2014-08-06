@@ -11,11 +11,32 @@ use FM\Feeder\Writer\WriterInterface;
 
 class MultiPartTransformer implements ResourceTransformer
 {
+    /**
+     * @var ReaderInterface
+     */
     protected $reader;
+
+    /**
+     * @var WriterInterface
+     */
     protected $writer;
+
+    /**
+     * @var integer
+     */
     protected $size;
+
+    /**
+     * @var integer|null
+     */
     protected $maxParts;
 
+    /**
+     * @param ReaderInterface $reader
+     * @param WriterInterface $writer
+     * @param integer         $size
+     * @param integer         $maxParts
+     */
     public function __construct(ReaderInterface $reader, WriterInterface $writer, $size = 1000, $maxParts = null)
     {
         $this->reader   = $reader;
@@ -24,6 +45,9 @@ class MultiPartTransformer implements ResourceTransformer
         $this->maxParts = $maxParts;
     }
 
+    /**
+     * @inheritdoc
+     */
     public function transform(Resource $resource, ResourceCollection $collection)
     {
         // break up again
@@ -45,16 +69,29 @@ class MultiPartTransformer implements ResourceTransformer
         return $collection->shift();
     }
 
+    /**
+     * @inheritdoc
+     */
     public function needsTransforming(Resource $resource)
     {
         return !$this->isPartFile($resource);
     }
 
+    /**
+     * @param \FM\Feeder\Resource\Resource $resource
+     *
+     * @return integer
+     */
     protected function isPartFile(Resource $resource)
     {
         return preg_match('/\.part(\d+)$/', $resource->getFile()->getBasename());
     }
 
+    /**
+     * @param \FM\Feeder\Resource\Resource $resource
+     *
+     * @return array
+     */
     protected function getPartFiles(Resource $resource)
     {
         $files = [];
@@ -75,6 +112,11 @@ class MultiPartTransformer implements ResourceTransformer
         return $files;
     }
 
+    /**
+     * @param \FM\Feeder\Resource\Resource $resource
+     *
+     * @return array
+     */
     protected function breakup(Resource $resource)
     {
         $originalFile = $resource->getFile();
@@ -104,6 +146,9 @@ class MultiPartTransformer implements ResourceTransformer
         return $this->getPartFiles($resource);
     }
 
+    /**
+     * @param string $file
+     */
     protected function startPart($file)
     {
         $this->writer = clone($this->writer);
@@ -111,6 +156,9 @@ class MultiPartTransformer implements ResourceTransformer
         $this->writer->start();
     }
 
+    /**
+     * @return void
+     */
     protected function endPart()
     {
         $this->writer->end();

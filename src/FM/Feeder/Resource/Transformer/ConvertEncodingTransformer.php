@@ -29,6 +29,9 @@ class ConvertEncodingTransformer implements ResourceTransformer
         $this->toEncoding   = $toEncoding ?: mb_internal_encoding();
     }
 
+    /**
+     * @inheritdoc
+     */
     public function transform(Resource $resource, ResourceCollection $collection)
     {
         $file = $resource->getFile()->getPathname();
@@ -56,6 +59,9 @@ class ConvertEncodingTransformer implements ResourceTransformer
         return new FileResource($transport);
     }
 
+    /**
+     * @inheritdoc
+     */
     public function needsTransforming(Resource $resource)
     {
         $file = $resource->getFile();
@@ -69,6 +75,13 @@ class ConvertEncodingTransformer implements ResourceTransformer
         return false;
     }
 
+    /**
+     * @param string $file
+     *
+     * @throws \RuntimeException
+     *
+     * @return string
+     */
     protected function rename($file)
     {
         $tmpFile = $file . '.tmp';
