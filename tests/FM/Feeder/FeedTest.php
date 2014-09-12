@@ -2,7 +2,7 @@
 
 namespace FM\Feeder;
 
-class FeedTest extends \PHPUnit_Framework_TestCase 
+class FeedTest extends \PHPUnit_Framework_TestCase
 {
     public function testHasModifierAt()
     {

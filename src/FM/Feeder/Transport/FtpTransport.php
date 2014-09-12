@@ -364,7 +364,6 @@ class FtpTransport extends AbstractTransport implements ProgressAwareInterface
             return new PatternMatcher($file);
         }
 
-
         // see if globbing is used
         if (false !== strpos($file, '*')) {
             return new GlobMatcher($file);

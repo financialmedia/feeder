@@ -49,4 +49,3 @@ class LocalizedStringToNumberTransformerTest extends \PHPUnit_Framework_TestCase
         ];
     }
 }
- 
