@@ -129,7 +129,6 @@ class UnzipTransformer implements ResourceTransformer
         $zip->extractTo($this->getTargetDir($resource));
     }
 
-
     /**
      * @param \FM\Feeder\Resource\Resource $resource
      *
