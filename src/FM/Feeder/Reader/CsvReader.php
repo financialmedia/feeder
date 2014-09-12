@@ -39,6 +39,14 @@ class CsvReader extends AbstractReader
     protected $escape = '\\';
 
     /**
+     * @var boolean
+     */
+    protected $convertNull;
+
+    /**
+     * Sets a mapping to use for each row. If the CSV has the column names exported,
+     * you can use {@link useFirstRow} to auto-generate the field mapping.
+     *
      * @param array $mapping
      */
     public function setFieldMapping(array $mapping)
@@ -47,6 +55,8 @@ class CsvReader extends AbstractReader
     }
 
     /**
+     * When true, the first row in the CSV file is used to generate the field mapping.
+     *
      * @param boolean $bool
      */
     public function useFirstRow($bool = true)
@@ -86,47 +96,83 @@ class CsvReader extends AbstractReader
         return $this->key() + 1;
     }
 
+    /**
+     * When true, "null" and "NULL" are converted to NULL.
+     *
+     * @param boolean $bool
+     */
+    public function convertNull($bool = true)
+    {
+        $this->convertNull = (boolean) $bool;
+    }
+
+    /**
+     * @inheritdoc
+     */
     protected function serialize($data)
     {
         // convert data keys if a mapping is given
-        if ($this->mapping) {
-            $item = [];
-            foreach ($this->mapping as $index => $field) {
-                $value = array_key_exists($index, $data) ? $data[$index] : null;
-                $item[$field] = $value;
-            }
-
-            $data = $item;
+        if (!$this->mapping) {
+            $this->mapping = array_combine(array_keys($data), array_keys($data));
         }
 
-        return new ParameterBag($data);
+        $item = new ParameterBag();
+        foreach ($this->mapping as $index => $field) {
+            $value = array_key_exists($index, $data) ? $data[$index] : null;
+
+            if ($this->convertNull && in_array($value, ['null', 'NULL'])) {
+                $value = null;
+            }
+
+            $item->set($field, $value);
+        }
+
+        return $item;
     }
 
+    /**
+     * @inheritdoc
+     */
     protected function doKey()
     {
         return $this->fileObject->key();
     }
 
+    /**
+     * @inheritdoc
+     */
     protected function doCurrent()
     {
         return $this->fileObject->current();
     }
 
+    /**
+     * @inheritdoc
+     */
     protected function doNext()
     {
         $this->fileObject->next();
     }
 
+    /**
+     * @inheritdoc
+     */
     protected function doValid()
     {
         return $this->fileObject->valid();
     }
 
+    /**
+     * @inheritdoc
+     */
     protected function doRewind()
     {
         $this->fileObject->rewind();
     }
 
+    /**
+     * @inheritdoc
+     */
     protected function createReader(Resource $resource)
     {
         $this->fileObject = new SplFileObject($resource->getFile()->getPathname());
