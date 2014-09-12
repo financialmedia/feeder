@@ -176,7 +176,7 @@ class CsvReader extends AbstractReader
     protected function createReader(Resource $resource)
     {
         $this->fileObject = new SplFileObject($resource->getFile()->getPathname());
-        $this->fileObject->setFlags(SplFileObject::READ_CSV | SplFileObject::DROP_NEW_LINE | SplFileObject::SKIP_EMPTY);
+        $this->fileObject->setFlags(SplFileObject::READ_CSV | SplFileObject::READ_AHEAD | SplFileObject::DROP_NEW_LINE | SplFileObject::SKIP_EMPTY);
         $this->fileObject->setCsvControl($this->delimiter, $this->enclosure, $this->escape);
 
         if ($this->useFirstRow) {
