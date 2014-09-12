@@ -21,6 +21,20 @@ class CsvReaderTest extends \PHPUnit_Framework_TestCase
         $this->assertNull($reader->read());
     }
 
+    public function testNewlineAtEof()
+    {
+        $reader = new CsvReader(new StringResource(<<<CSV
+foo,bar,baz
+
+CSV
+        ));
+
+        // if newlines are not properly trimmed, this will fatal
+        while ($item = $reader->read()) {
+            $this->assertInstanceOf('Symfony\Component\HttpFoundation\ParameterBag', $item);
+        }
+    }
+
     public function testMapping()
     {
         $reader = new CsvReader(new StringResource('foo,bar,baz'));
