@@ -8,10 +8,9 @@ use FM\Feeder\Resource\ResourceCollection;
 use FM\Feeder\Transport\FileTransport;
 
 /**
- * @deprecated Use RemoveControlCharactersTransformer instead
- * @see        RemoveControlCharactersTransformer
+ * Strips all control characters from the resource, except space characters.
  */
-class RemoveUnitSeparatorsTransformer implements ResourceTransformer
+class RemoveControlCharactersTransformer implements ResourceTransformer
 {
     /**
      * @var integer
@@ -19,7 +18,7 @@ class RemoveUnitSeparatorsTransformer implements ResourceTransformer
     protected $length;
 
     /**
-     * @param integer $length
+     * @param integer $length The number of bytes to read/write while processing the resource
      */
     public function __construct($length = 8192)
     {
@@ -33,22 +32,21 @@ class RemoveUnitSeparatorsTransformer implements ResourceTransformer
     {
         $file = $resource->getFile()->getPathname();
 
-        // first, rename the original file
-        $oldFile = $this->rename($file);
+        $tmpFile = tempnam(sys_get_temp_dir(), $file);
 
-        // remove unit separators
-        $char = chr(31);
-        $old = fopen($oldFile, 'r');
-        $new = fopen($file, 'w');
+        // remove control characters
+        $old = fopen($file, 'r');
+        $new = fopen($tmpFile, 'w');
 
         while (!feof($old)) {
-            fwrite($new, str_replace($char, '', fread($old, $this->length)));
+            fwrite($new, preg_replace('/[^\P{Cc}\t\r\n]/u', '', fread($old, $this->length)));
         }
 
         fclose($old);
         fclose($new);
 
-        unlink($oldFile);
+        // atomic write
+        $this->rename($tmpFile, $file);
 
         $transport = FileTransport::create($file);
 
@@ -64,24 +62,19 @@ class RemoveUnitSeparatorsTransformer implements ResourceTransformer
      */
     public function needsTransforming(Resource $resource)
     {
-        return false;
+        return true;
     }
 
     /**
-     * @param $file
+     * @param string $old
+     * @param string $new
      *
      * @throws \RuntimeException
-     *
-     * @return integer
      */
-    protected function rename($file)
+    protected function rename($old, $new)
     {
-        $tmpFile = $file . '.tmp';
-
-        if (rename($file, $tmpFile)) {
-            return $tmpFile;
+        if (!rename($old, $new)) {
+            throw new \RuntimeException(sprintf('Could not rename %s to %s', $old, $new));
         }
-
-        throw new \RuntimeException(sprintf('Could not rename %s to %s', $file, $tmpFile));
     }
 }
