@@ -15,7 +15,7 @@ class RemoveControlCharactersTransformerTest extends \PHPUnit_Framework_TestCase
     {
         $resource = new StringResource($from);
         $coll = new ResourceCollection([$resource]);
-        $coll->addTransformer(new RemoveControlCharactersTransformer());
+        $coll->addTransformer(new RemoveControlCharactersTransformer(1));
 
         $file = $coll->current()->getFile()->getPathname();
 
@@ -32,6 +32,10 @@ class RemoveControlCharactersTransformerTest extends \PHPUnit_Framework_TestCase
             [
                 sprintf("While stripping control%s characters%s...\n\nnewlines and\ttabs are kept intact", chr(26), chr(127)),
                 "While stripping control characters...\n\nnewlines and\ttabs are kept intact"
+            ],
+            [
+                sprintf("Also%s, mültîb¥†é characters%s do not break", chr(7), chr(27)),
+                "Also, mültîb¥†é characters do not break"
             ]
         ];
     }

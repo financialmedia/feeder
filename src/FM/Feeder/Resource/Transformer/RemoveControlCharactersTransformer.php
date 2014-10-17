@@ -38,8 +38,13 @@ class RemoveControlCharactersTransformer implements ResourceTransformer
         $old = fopen($file, 'r');
         $new = fopen($tmpFile, 'w');
 
+        // list control characters, but leave out \t\r\n
+        $chars = array_map('chr', range(0, 31));
+        $chars[] = chr(127);
+        unset($chars[9], $chars[10], $chars[13]);
+
         while (!feof($old)) {
-            fwrite($new, preg_replace('/[^\P{Cc}\t\r\n]/u', '', fread($old, $this->length)));
+            fwrite($new, str_replace($chars, '', fread($old, $this->length)));
         }
 
         fclose($old);
