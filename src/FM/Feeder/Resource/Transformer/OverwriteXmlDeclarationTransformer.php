@@ -8,27 +8,26 @@ use FM\Feeder\Resource\ResourceCollection;
 use FM\Feeder\Transport\FileTransport;
 
 /**
- * Strips the BOM from the beginning of the resource
+ * Overwrite xml declaration
  */
-class RemoveByteOrderMarkTransformer implements ResourceTransformer
+class OverwriteXmlDeclarationTransformer implements ResourceTransformer
 {
     /**
-     * @var array
+     * @var string
      */
-    protected $boms;
+    protected $xmlDeclaration;
+
+    /**
+     * @var string regexp
+     */
+    protected $xmlDeclarationRegEx = '/^\<\?xml.*\?\>/i';
 
     /**
      * Constructor
      */
-    public function __construct()
+    public function __construct($xmlDeclaration = '<?xml version="1.0" encoding="UTF-8"?>')
     {
-        $this->boms = [
-            '\x00\x00\xFE\xFF', // UTF-32 (BE)
-            '\xFF\xFE\x00\x00', // UTF-32 (LE)
-            '\xFE\xFF',         // UTF-16 (BE)
-            '\xFF\xFE',         // UTF-16 (LE)
-            '\xEF\xBB\xBF',     // UTF-8
-        ];
+        $this->xmlDeclaration = $xmlDeclaration;
     }
 
     /**
@@ -43,8 +42,8 @@ class RemoveByteOrderMarkTransformer implements ResourceTransformer
         $old     = fopen($file, 'r');
         $new     = fopen($tmpFile, 'w');
 
-        // write the beginning with the BOM stripped
-        fwrite($new, preg_replace($this->getBomRegex(), '', fread($old, 16)));
+        // write the beginning with the xml declaration replaced
+        fwrite($new, preg_replace($this->xmlDeclarationRegEx, $this->xmlDeclaration, fread($old, 96)));
 
         // now copy the rest of the file
         while (!feof($old)) {
@@ -74,7 +73,7 @@ class RemoveByteOrderMarkTransformer implements ResourceTransformer
         $file = $resource->getFile()->getPathname();
         $handle = fopen($file, 'r');
 
-        $result = (bool) preg_match($this->getBomRegex(), fread($handle, 16));
+        $result = (bool) preg_match($this->xmlDeclarationRegEx, fread($handle, 96));
 
         fclose($handle);
 
@@ -92,13 +91,5 @@ class RemoveByteOrderMarkTransformer implements ResourceTransformer
         if (!rename($old, $new)) {
             throw new \RuntimeException(sprintf('Could not rename %s to %s', $old, $new));
         }
-    }
-
-    /**
-     * @return string
-     */
-    protected function getBomRegex()
-    {
-        return sprintf('/^(%s)/', implode('|', $this->boms));
     }
 }
