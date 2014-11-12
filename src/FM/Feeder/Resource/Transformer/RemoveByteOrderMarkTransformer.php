@@ -74,7 +74,11 @@ class RemoveByteOrderMarkTransformer implements ResourceTransformer
         $file = $resource->getFile()->getPathname();
         $handle = fopen($file, 'r');
 
-        return preg_match($this->getBomRegex(), fread($handle, 16));
+        $result = (bool) preg_match($this->getBomRegex(), fread($handle, 16));
+
+        fclose($handle);
+
+        return $result;
     }
 
     /**
