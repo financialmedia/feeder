@@ -73,7 +73,11 @@ class OverwriteXmlDeclarationTransformer implements ResourceTransformer
         $file = $resource->getFile()->getPathname();
         $handle = fopen($file, 'r');
 
-        return preg_match($this->xmlDeclarationRegEx, fread($handle, 96));
+        $result = (bool) preg_match($this->xmlDeclarationRegEx, fread($handle, 96));
+
+        fclose($handle);
+
+        return $result;
     }
 
     /**
