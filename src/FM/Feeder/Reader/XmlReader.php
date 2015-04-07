@@ -148,6 +148,7 @@ class XmlReader extends AbstractReader
     protected function createReader(Resource $resource)
     {
         $this->reader = new \XmlReader();
+        var_dump('opening: '.$resource->getFile()->getPathname());
         $this->open($resource->getFile()->getPathname());
 
         $this->key = -1;

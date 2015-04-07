@@ -135,6 +135,8 @@ class ResourceCollection extends \SplQueue
 
             $this->transformed[] = $hash;
         }
+        
+        var_dump('transformed: '.$resource->getFile()->getRealPath());
 
         return $resource;
     }
