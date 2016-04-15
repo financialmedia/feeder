@@ -243,8 +243,8 @@ class HttpTransport extends AbstractTransport implements EventSubscriberInterfac
         /** @var RequestInterface $request */
         $request = $this->client->$method($this->getUrl());
 
-        if (($user = $this->getUser()) && ($pass = $this->getPass())) {
-            $request->setAuth($user, $pass);
+        if ($user = $this->getUser()) {
+            $request->setAuth($user, $this->getPass());
         }
 
         if ('get' === $method) {
